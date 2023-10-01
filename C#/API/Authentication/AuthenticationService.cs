@@ -10,6 +10,7 @@ namespace Unity.Services.Authentication;
 public partial class AuthenticationService : HttpRequest
 {
     public static AuthenticationService Instance { get; private set; }
+    private const string AnonSignIn = "https://services.api.unity.com";
     private const string SignUpURL =
         "https://player-auth.services.api.unity.com/v1/authentication/usernamepassword/sign-up";
     private const string SignInURL =
@@ -24,6 +25,20 @@ public partial class AuthenticationService : HttpRequest
     public override void _Ready()
     {
         RequestCompleted += HttpRequestCompleted;
+    }
+
+    public Error SignInAnonymously()
+    {
+        try
+        {
+            return Request(AnonSignIn, new string[] { $"Authorization: Bearer {idToken}" });
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr(e);
+        }
+
+        return Error.Failed;
     }
 
     public Error SignUpWithUsernamePassword(string username, string password)
@@ -122,9 +137,11 @@ public partial class AuthenticationService : HttpRequest
         Godot.Collections.Dictionary json = Json.ParseString(Encoding.UTF8.GetString(body))
             .AsGodotDictionary();
 
-        GD.Print(
-            $"Error: {(Error)result}\nResponse Code: {responseCode}\nHeaders: {PrintHeaders(headers)} \nBody: {json}"
-        );
+        idToken = json["idToken"].ToString();
+
+        // GD.Print(
+        //     $"Error: {(Error)result}\nResponse Code: {responseCode}\nHeaders: {PrintHeaders(headers)} \nBody: {json}"
+        // );
     }
 
     private static string PrintHeaders(string[] headers)

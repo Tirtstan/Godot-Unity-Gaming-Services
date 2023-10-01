@@ -1,3 +1,6 @@
-[gd_scene format=3 uid="uid://c7hcp07vefjtx"]
+[gd_scene load_steps=2 format=3 uid="uid://c7hcp07vefjtx"]
 
-[node name="Node" type="Node"]
+[ext_resource type="Script" path="res://C#/Testing/Test.cs" id="1_cq0fl"]
+
+[node name="Test" type="Node"]
+script = ExtResource("1_cq0fl")

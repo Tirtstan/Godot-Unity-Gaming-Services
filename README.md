@@ -36,7 +36,7 @@ private void SignUp(string username, string password)
 {
     Error error = AuthenticationService.Instance.SignUpWithUsernamePassword(username,password);
 
-    GD.PrintErr(error); // will print "OK" if succeeded (Error.OK)
+    GD.PrintErr(error);
 }
 
 private void SignIn(string username, string password)
