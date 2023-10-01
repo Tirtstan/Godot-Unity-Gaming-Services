@@ -32,7 +32,7 @@ public partial class UnityServices : HttpRequest
     {
         Error error = (Error)result;
         GD.Print(error.ToString());
-        OnInitialize?.Invoke(error != Error.Ok);
+        OnInitialize?.Invoke(error == Error.Ok);
     }
 
     public override void _ExitTree()

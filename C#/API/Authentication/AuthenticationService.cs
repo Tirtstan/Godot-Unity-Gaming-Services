@@ -17,7 +17,6 @@ public partial class AuthenticationService : HttpRequest
     private const string UpdatePasswordURL =
         "https://player-auth.services.api.unity.com/v1/authentication/usernamepassword/update-password";
     private const string JsonHeader = "Content-Type: application/json";
-    private HttpRequest httpRequest;
     private string idToken;
 
     public override void _EnterTree() => Instance = this;
@@ -46,9 +45,11 @@ public partial class AuthenticationService : HttpRequest
         try
         {
             string requestData =
-                "{ " + $@"""password"": {currentPassword}, ""newPassword"": {newPassword}" + " }";
+                "{"
+                + $@"""password"": ""{currentPassword}"", ""newPassword"": ""{newPassword}"""
+                + "}";
 
-            return httpRequest.Request(
+            return Request(
                 UpdatePasswordURL,
                 new string[]
                 {
@@ -99,9 +100,9 @@ public partial class AuthenticationService : HttpRequest
         try
         {
             string requestData =
-                "{ " + $@"""username"": {username}, ""password"": {password}" + " }";
+                "{" + $@"""username"": ""{username}"", ""password"": ""{password}""" + "}";
 
-            return httpRequest.Request(
+            return Request(
                 url,
                 new string[] { JsonHeader, $"ProjectId: {UnityServices.Instance.ProjectId}" },
                 HttpClient.Method.Post,
@@ -120,8 +121,19 @@ public partial class AuthenticationService : HttpRequest
     {
         Godot.Collections.Dictionary json = Json.ParseString(Encoding.UTF8.GetString(body))
             .AsGodotDictionary();
-        GD.Print(json);
-        GD.Print("\nID TOKEN: " + json["idToken"]);
+
+        GD.Print(
+            $"Error: {(Error)result}\nResponse Code: {responseCode}\nHeaders: {PrintHeaders(headers)} \nBody: {json}"
+        );
+    }
+
+    private static string PrintHeaders(string[] headers)
+    {
+        string output = "";
+        for (int i = 0; i < headers.Length; i++)
+            output += i == 0 ? headers[i] : $", {headers[i]}";
+
+        return output;
     }
 
     public override void _ExitTree()
