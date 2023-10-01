@@ -1,0 +1,5 @@
+# Godot 4+ specific ignores
+.godot/
+addons/
+C#/Resources/APIResource.tres
+C#/Testing/

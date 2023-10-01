@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://baahwpt1hal6r"]
+
+[ext_resource type="Script" path="res://C#/API/UnityServices.cs" id="1_4tj83"]
+[ext_resource type="Resource" uid="uid://um13qw1abo8t" path="res://C#/Resources/APIResource.tres" id="2_hibvj"]
+[ext_resource type="Script" path="res://C#/Testing/Test.cs" id="3_bcqsn"]
+
+[node name="Unity" type="Node"]
+
+[node name="UnityServices" type="HTTPRequest" parent="."]
+script = ExtResource("1_4tj83")
+apiResource = ExtResource("2_hibvj")
+
+[node name="UsernamePassword" type="HTTPRequest" parent="."]
+
+[node name="Test" type="Node" parent="."]
+script = ExtResource("3_bcqsn")
