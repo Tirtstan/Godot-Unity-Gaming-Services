@@ -1,8 +1,11 @@
-// Reference: https://services.docs.unity.com/docs/client-auth/index.html
+// Reference: https://services.docs.unity.com/docs/client-auth/
 
 using System;
 using System.Text;
+using System.Threading.Tasks;
 using Godot;
+using RestSharp;
+using RestSharp.Authenticators;
 using Unity.Services.Core;
 
 namespace Unity.Services.Authentication;
@@ -10,7 +13,11 @@ namespace Unity.Services.Authentication;
 public partial class AuthenticationService : HttpRequest
 {
     public static AuthenticationService Instance { get; private set; }
-    private const string AnonSignIn = "https://services.api.unity.com";
+    private RestClient authClient;
+    private const string URL = "https://services.api.unity.com";
+    private const string AuthURL = "https://player-auth.services.api.unity.com/v1/authentication";
+    private const string UsernamePasswordURL =
+        "https://player-auth.services.api.unity.com/v1/authentication/usernamepassword";
     private const string SignUpURL =
         "https://player-auth.services.api.unity.com/v1/authentication/usernamepassword/sign-up";
     private const string SignInURL =
@@ -18,27 +25,29 @@ public partial class AuthenticationService : HttpRequest
     private const string UpdatePasswordURL =
         "https://player-auth.services.api.unity.com/v1/authentication/usernamepassword/update-password";
     private const string JsonHeader = "Content-Type: application/json";
-    private string idToken;
+    private string IdToken;
 
     public override void _EnterTree() => Instance = this;
 
     public override void _Ready()
     {
-        RequestCompleted += HttpRequestCompleted;
+        var authOptions = new RestClientOptions(AuthURL) { ThrowOnAnyError = true };
+        authClient = new RestClient(authOptions);
     }
 
-    public Error SignInAnonymously()
+    public async Task SignInAnonymously()
     {
-        try
-        {
-            return Request(AnonSignIn, new string[] { $"Authorization: Bearer {idToken}" });
-        }
-        catch (Exception e)
-        {
-            GD.PrintErr(e);
-        }
+        var request = new RestRequest("/anonymous", Method.Post).AddHeader(
+            $"ProjectId",
+            UnityServices.Instance.ProjectId
+        );
+        request.RequestFormat = DataFormat.Json;
 
-        return Error.Failed;
+        if (!string.IsNullOrEmpty(IdToken))
+            request.AddHeader("Authorization", $"Bearer {IdToken}");
+
+        var response = await authClient.ExecuteAsync(request);
+        GD.Print("Content: " + response.Content);
     }
 
     public Error SignUpWithUsernamePassword(string username, string password)
@@ -70,7 +79,7 @@ public partial class AuthenticationService : HttpRequest
                 {
                     JsonHeader,
                     $"ProjectId: {UnityServices.Instance.ProjectId}",
-                    $"Authorization: Bearer {idToken}"
+                    $"Authorization: Bearer {IdToken}"
                 },
                 HttpClient.Method.Post,
                 requestData
@@ -137,7 +146,7 @@ public partial class AuthenticationService : HttpRequest
         Godot.Collections.Dictionary json = Json.ParseString(Encoding.UTF8.GetString(body))
             .AsGodotDictionary();
 
-        idToken = json["idToken"].ToString();
+        // idToken = json["idToken"].ToString();
 
         // GD.Print(
         //     $"Error: {(Error)result}\nResponse Code: {responseCode}\nHeaders: {PrintHeaders(headers)} \nBody: {json}"
@@ -151,10 +160,5 @@ public partial class AuthenticationService : HttpRequest
             output += i == 0 ? headers[i] : $", {headers[i]}";
 
         return output;
-    }
-
-    public override void _ExitTree()
-    {
-        RequestCompleted -= HttpRequestCompleted;
     }
 }

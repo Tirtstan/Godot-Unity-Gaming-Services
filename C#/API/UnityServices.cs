@@ -2,41 +2,39 @@
 
 using System;
 using Godot;
+using RestSharp;
 
 namespace Unity.Services.Core;
 
 public partial class UnityServices : HttpRequest
 {
     public static UnityServices Instance { get; private set; }
-    private const string APIEndpoint = "https://services.api.unity.com";
+    private const string UnityServicesUrl = "https://services.api.unity.com";
 
     [Export(PropertyHint.ResourceType)]
     private APIResource apiResource;
     public string ProjectId => apiResource.ProjectId;
     public event Action<bool> OnInitialize;
+    private RestClient restClient;
 
     public override void _EnterTree() => Instance = this;
 
     public override void _Ready()
     {
-        RequestCompleted += HttpRequestCompleted;
+        var restOptions = new RestClientOptions(UnityServicesUrl) { ThrowOnAnyError = true };
+        restClient = new RestClient(restOptions);
     }
 
-    public Error Initialize() =>
-        Request(
-            APIEndpoint,
-            new string[] { $"Authorization: Basic {apiResource.ServiceAccountCredentials}" }
+    public async void Initialize()
+    {
+        GD.Print("Initializing Unity Services");
+
+        var request = new RestRequest(UnityServicesUrl).AddHeader(
+            "Authorization",
+            $"Basic {apiResource.ServiceAccountCredentials}"
         );
 
-    private void HttpRequestCompleted(long result, long responseCode, string[] headers, byte[] body)
-    {
-        Error error = (Error)result;
-        GD.Print(error.ToString());
-        OnInitialize?.Invoke(error == Error.Ok);
-    }
-
-    public override void _ExitTree()
-    {
-        RequestCompleted -= HttpRequestCompleted;
+        var response = await restClient.ExecuteAsync(request);
+        OnInitialize?.Invoke(response.IsSuccessful);
     }
 }

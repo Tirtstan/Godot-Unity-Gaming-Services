@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="APIResource" load_steps=2 format=3 uid="uid://8xbvl7s8xjak"]
+
+[ext_resource type="Script" path="res://C#/Resources/APIResource.cs" id="1_gyuap"]
+
+[resource]
+script = ExtResource("1_gyuap")
+ServiceAccountCredentials = ""
+ProjectId = ""
