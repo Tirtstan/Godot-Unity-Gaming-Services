@@ -1,10 +1,10 @@
-# Godot-Unity-Gaming-Services
+# Godot Unity Gaming Services
 
 Basic SKD for connecting **[Unity Gaming Services](https://unity.com/solutions/gaming-services)** to **Godot 4.2+** using C#. Not sure if I will continue creating and updating this project as I just wanted the ability to use Unity's User Generated Content in any project I make.
 
 **This SDK is still under development. It may never be finished.**
 
-Hopefully someone can use this as a jump start to implement a final version or guide me through it.
+Maybe someone can use this as a jumping point to create a final version or contribute to this directly.
 
 # Unity Gaming Services
 
@@ -16,6 +16,7 @@ Hopefully someone can use this as a jump start to implement a final version or g
 
 ## Planned
 
+-   Leaderboards
 -   User Generated Content
 
 # Architecture
@@ -35,16 +36,16 @@ Scripts are communicated by singletons like in Unity. I only use one initial God
 ```csharp
 public override async void _Ready()
 {
-    UnityServices.Instance.OnInitialize += OnInitialize;
-    await UnityServices.Instance.InitializeAsync();
+	UnityServices.Instance.OnInitialize += OnInitialize;
+	await UnityServices.Instance.InitializeAsync();
 }
 
 private void OnInitialize(bool isInitialized)
 {
-    if (!isInitialized)
-        return;
+	if (!isInitialized)
+		return;
 
-    GD.Print("Unity Services Initialized!");
+	GD.Print("Unity Services Initialized!");
 }
 ```
 
@@ -55,31 +56,31 @@ private void OnInitialize(bool isInitialized)
 ```csharp
 private async void SignUp(string username, string password)
 {
-    try
-    {
-        await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(
-            username,
-            password
-        );
-    }
-    catch (System.Exception e)
-    {
-        GD.PrintErr(e);
-    }
+	try
+	{
+		await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(
+			username,
+			password
+		);
+	}
+	catch (System.Exception e)
+	{
+		GD.PrintErr(e);
+	}
 }
 
 private async void SignIn(string username, string password)
 {
-    try
-    {
-        await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(
-            username,
-            password
-        );
-    }
-    catch (System.Exception e)
-    {
-        GD.PrintErr(e);
-    }
+	try
+	{
+		await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(
+			username,
+			password
+		);
+	}
+	catch (System.Exception e)
+	{
+		GD.PrintErr(e);
+	}
 }
 ```

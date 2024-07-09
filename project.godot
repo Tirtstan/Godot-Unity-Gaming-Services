@@ -21,7 +21,7 @@ Unity="*res://Scenes/Unity.tscn"
 
 [dotnet]
 
-project/assembly_name="Unity_REST_API_CSharp"
+project/assembly_name="Godot-Unity-Gaming-Services"
 
 [editor_plugins]
 

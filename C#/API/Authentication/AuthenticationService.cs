@@ -1,5 +1,7 @@
 // References: https://services.docs.unity.com/docs/client-auth && https://restsharp.dev/docs/usage/basics
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
@@ -11,28 +13,60 @@ namespace Unity.Services.Authentication;
 public partial class AuthenticationService : Node
 {
     public static AuthenticationService Instance { get; private set; }
-    public UserSession UserSession { get; private set; }
+    public UserSession UserSession { get; private set; } = new();
     private RestClient authClient;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1/authentication";
+    private const string Path = "user://GodotUGS_UserCache.cfg";
 
     public override void _EnterTree() => Instance = this;
 
     public override void _Ready()
     {
         authClient = new RestClient(AuthURL);
+        authClient.AddDefaultHeaders(
+            new Dictionary<string, string>
+            {
+                { "ProjectId", UnityServices.Instance.ProjectId },
+                { "UnityEnvironment", UnityServices.Instance.Environment }
+            }
+        );
+
+        LoadUserTokens();
     }
 
     public async Task SignInAnonymouslyAsync()
     {
-        var request = new RestRequest("/anonymous", Method.Post).AddHeader(
-            "ProjectId",
-            UnityServices.Instance.ProjectId
-        );
-        request.RequestFormat = DataFormat.Json;
+        if (!string.IsNullOrEmpty(UserSession.sessionToken))
+        {
+            await SignInWithSessionToken(UserSession.sessionToken);
+            return;
+        }
+
+        var request = new RestRequest("/anonymous", Method.Post)
+        {
+            RequestFormat = DataFormat.Json
+        };
 
         var response = await authClient.ExecuteAsync(request);
         if (!response.IsSuccessful)
             throw response.ErrorException;
+    }
+
+    private async Task SignInWithSessionToken(string sessionToken)
+    {
+        string requestData = "{" + $@"""sessionToken"": ""{sessionToken}""" + "}";
+        var request = new RestRequest("/session-token", Method.Post).AddJsonBody(requestData);
+
+        var response = await authClient.ExecuteAsync<UserSession>(request);
+        if (!response.IsSuccessful)
+        {
+            throw response.ErrorException;
+        }
+        else
+        {
+            UserSession = response.Data;
+            SaveUserTokens();
+        }
     }
 
     /// <summary>
@@ -51,16 +85,20 @@ public partial class AuthenticationService : Node
     {
         string requestData =
             "{" + $@"""username"": ""{username}"", ""password"": ""{password}""" + "}";
-
-        var request = new RestRequest("/usernamepassword/sign-up", Method.Post)
-            .AddHeader("ProjectId", UnityServices.Instance.ProjectId)
-            .AddJsonBody(requestData);
+        var request = new RestRequest("/usernamepassword/sign-up", Method.Post).AddJsonBody(
+            requestData
+        );
 
         var response = await authClient.ExecuteAsync<UserSession>(request);
         if (!response.IsSuccessful)
+        {
             throw response.ErrorException;
+        }
         else
+        {
             UserSession = response.Data;
+            SaveUserTokens();
+        }
     }
 
     public async Task SignInWithUsernamePasswordAsync(string username, string password)
@@ -68,15 +106,20 @@ public partial class AuthenticationService : Node
         string requestData =
             "{" + $@"""username"": ""{username}"", ""password"": ""{password}""" + "}";
 
-        var request = new RestRequest("/usernamepassword/sign-in", Method.Post)
-            .AddHeader("ProjectId", UnityServices.Instance.ProjectId)
-            .AddJsonBody(requestData);
+        var request = new RestRequest("/usernamepassword/sign-in", Method.Post).AddJsonBody(
+            requestData
+        );
 
         var response = await authClient.ExecuteAsync<UserSession>(request);
         if (!response.IsSuccessful)
+        {
             throw response.ErrorException;
+        }
         else
+        {
             UserSession = response.Data;
+            SaveUserTokens();
+        }
     }
 
     public async Task UpdatePasswordAsync(string currentPassword, string newPassword)
@@ -85,12 +128,36 @@ public partial class AuthenticationService : Node
             "{" + $@"""password"": ""{currentPassword}"", ""newPassword"": ""{newPassword}""" + "}";
 
         var request = new RestRequest("/usernamepassword/update-password", Method.Post)
-            .AddHeader("ProjectId", UnityServices.Instance.ProjectId)
-            .AddHeader("Authorization", $"Bearer {UserSession}")
+            .AddHeader("Authorization", $"Bearer {UserSession.idToken}")
             .AddJsonBody(requestData);
 
         var response = await authClient.ExecuteAsync(request);
         if (!response.IsSuccessful)
             throw response.ErrorException;
+    }
+
+    private void SaveUserTokens()
+    {
+        var config = new ConfigFile();
+
+        config.SetValue("GodotUser", "idToken", UserSession.idToken);
+        config.SetValue("GodotUser", "sessionToken", UserSession.sessionToken);
+
+        config.Save(Path);
+    }
+
+    private void LoadUserTokens()
+    {
+        var config = new ConfigFile();
+        Error error = config.Load(Path);
+        if (error != Error.Ok)
+            return;
+
+        UserSession = new UserSession();
+        foreach (string section in config.GetSections())
+        {
+            UserSession.idToken = (string)config.GetValue(section, "idToken");
+            UserSession.sessionToken = (string)config.GetValue(section, "sessionToken");
+        }
     }
 }
