@@ -1,6 +1,7 @@
 // References: https://services.docs.unity.com/docs/service-account-auth/ && https://restsharp.dev/docs/usage/basics
 
 using System;
+using System.Threading.Tasks;
 using Godot;
 using RestSharp;
 
@@ -23,7 +24,7 @@ public partial class UnityServices : Node
         restClient = new RestClient(UnityServicesUrl);
     }
 
-    public async void Initialize()
+    public async Task InitializeAsync()
     {
         var request = new RestRequest(UnityServicesUrl).AddHeader(
             "Authorization",

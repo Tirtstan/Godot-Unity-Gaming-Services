@@ -1,6 +1,6 @@
 # Godot-Unity-Gaming-Services
 
-Basic SKD for connecting **[Unity Gaming Services](https://unity.com/solutions/gaming-services)** to **Godot 4.2+**. Not sure if I will continue creating and updating this project as I just wanted the ability to use Unity's User Generated Content in any project I make.
+Basic SKD for connecting **[Unity Gaming Services](https://unity.com/solutions/gaming-services)** to **Godot 4.2+** using C#. Not sure if I will continue creating and updating this project as I just wanted the ability to use Unity's User Generated Content in any project I make.
 
 **This SDK is still under development. It may never be finished.**
 
@@ -33,10 +33,10 @@ Scripts are communicated by singletons like in Unity. I only use one initial God
 ## Initialization
 
 ```csharp
-public override void _Ready()
+public override async void _Ready()
 {
     UnityServices.Instance.OnInitialize += OnInitialize;
-    UnityServices.Instance.Initialize();
+    await UnityServices.Instance.InitializeAsync();
 }
 
 private void OnInitialize(bool isInitialized)

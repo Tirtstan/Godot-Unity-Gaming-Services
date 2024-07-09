@@ -22,7 +22,7 @@ public partial class AuthenticationService : Node
         authClient = new RestClient(AuthURL);
     }
 
-    public async Task SignInAnonymously()
+    public async Task SignInAnonymouslyAsync()
     {
         var request = new RestRequest("/anonymous", Method.Post).AddHeader(
             "ProjectId",
@@ -35,6 +35,18 @@ public partial class AuthenticationService : Node
             throw response.ErrorException;
     }
 
+    /// <summary>
+    /// <para> Username constraints:</para>
+    /// <para>- Must be between 3-20 characters long.</para>
+    /// <para>- Can only contain the following characters: a-z, 0-9, and the symbols [.][-][@][_].</para>
+    /// <para>- Is case-insensitive.</para>
+    /// <para>Password Constraints:</para>
+    /// <para>- Must be between 8-30 characters long.</para>
+    /// <para>- Must contain at least one uppercase letter.</para>
+    /// <para>- Must contain at least one lowercase letter.</para>
+    /// <para>- Must contain at least one number.</para>
+    /// <para>- Must contain at least one symbol.</para>
+    /// </summary>
     public async Task SignUpWithUsernamePasswordAsync(string username, string password)
     {
         string requestData =
