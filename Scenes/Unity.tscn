@@ -6,9 +6,9 @@
 
 [node name="Unity" type="Node"]
 
-[node name="UnityServices" type="HTTPRequest" parent="."]
+[node name="UnityServices" type="Node" parent="."]
 script = ExtResource("1_4tj83")
 apiResource = ExtResource("2_hibvj")
 
-[node name="AuthenticationService" type="HTTPRequest" parent="."]
+[node name="AuthenticationService" type="Node" parent="."]
 script = ExtResource("3_g63vc")

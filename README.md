@@ -11,15 +11,11 @@ Hopefully someone can use this as a jump start to implement a final version or g
 ## In Development
 
 -   Authentication
-    -   Username & Password
-        -   Validation
-        -   Storing player ID token
+    -   Support for session log ins
     -   Other informational methods (like getting the player's ID)
 
 ## Planned
 
--   Authentication
-    -   Anonymous Sign-In (just not entirely sure how to implement it)
 -   User Generated Content
 
 # Architecture
@@ -48,7 +44,7 @@ private void OnInitialize(bool isInitialized)
     if (!isInitialized)
         return;
 
-    GD.Print("Unity Services Initialized!);
+    GD.Print("Unity Services Initialized!");
 }
 ```
 
@@ -57,17 +53,33 @@ private void OnInitialize(bool isInitialized)
 ### Username & Password
 
 ```csharp
-private void SignUp(string username, string password)
+private async void SignUp(string username, string password)
 {
-    Error error = AuthenticationService.Instance.SignUpWithUsernamePassword(username, password);
-
-    GD.PrintErr(error);
+    try
+    {
+        await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(
+            username,
+            password
+        );
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 
-private void SignIn(string username, string password)
+private async void SignIn(string username, string password)
 {
-    Error error = AuthenticationService.Instance.SignInWithUsernamePassword(username, password);
-
-    GD.PrintErr(error);
+    try
+    {
+        await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(
+            username,
+            password
+        );
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
