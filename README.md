@@ -72,7 +72,8 @@ public override async void _Ready()
 ### Anonymous
 
 ```csharp
-// If a player has signed in previously with a session token stored on the device, they are signed back in regardless of if they're an anonymous player or not.
+// If a player has signed in previously with a session token stored on the device,
+// they are signed back in regardless of if they're an anonymous player or not.
 private async void SignInAnonymously()
 {
     try
