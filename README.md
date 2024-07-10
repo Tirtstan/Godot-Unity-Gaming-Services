@@ -69,6 +69,24 @@ public override async void _Ready()
 
 ## Authentication
 
+### Anonymous
+
+```csharp
+// If a player has signed in previously with a session token stored on the device, they are signed back in regardless of if they're an anonymous player or not.
+private async void SignInAnonymously()
+{
+    try
+    {
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        GD.Print("Signed in as!: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
+}
+```
+
 ### Username & Password
 
 ```csharp
@@ -76,31 +94,27 @@ using Unity.Services.Authentication;
 
 private async void SignUp(string username, string password)
 {
-	try
-	{
-		await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(
-			username,
-			password
-		);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
+        GD.Print("Signed up as!: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 
 private async void SignIn(string username, string password)
 {
-	try
-	{
-		await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(
-			username,
-			password
-		);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
+        GD.Print("Signed in as!: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
