@@ -25,7 +25,7 @@ public partial class AuthenticationService : Node
     private UserSession UserSession = new();
     private string SessionToken => UserSession.sessionToken;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1/";
-    private const string Path = "user://GodotUGS_UserCache.cfg";
+    private const string CachePath = "user://GodotUGS_UserCache.cfg";
 
     public override void _EnterTree() => Instance = this;
 
@@ -238,7 +238,7 @@ public partial class AuthenticationService : Node
         SaveUserTokens();
     }
 
-    // just won't serialize properly, used a wrapper class to fit the json schema more, made it "forbidden" rather the usual json parse error
+    // just won't serialize properly, used a wrapper class to fit the json schema more, made it "forbidden" rather then the usual json parse error
 
     /// <summary>
     /// Retrieves the Notifications that were created for the signed in player
@@ -265,13 +265,13 @@ public partial class AuthenticationService : Node
         config.SetValue("GodotUGS", "idToken", AccessToken);
         config.SetValue("GodotUGS", "sessionToken", SessionToken);
 
-        config.Save(Path);
+        config.Save(CachePath);
     }
 
     private void LoadUserTokens()
     {
         var config = new ConfigFile();
-        Error error = config.Load(Path);
+        Error error = config.Load(CachePath);
         if (error != Error.Ok)
             return;
 
