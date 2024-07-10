@@ -10,11 +10,12 @@ namespace Unity.Services.Core;
 public partial class UnityServices : Node
 {
     public static UnityServices Instance { get; private set; }
-    private const string UnityServicesUrl = "https://services.api.unity.com";
-    private InitializationOptions initializationOptions = new();
     public string Environment => initializationOptions.Environment;
     public string ProjectId => apiResource.ProjectId;
     public event Action<bool> OnInitialize;
+
+    private const string UnityServicesUrl = "https://services.api.unity.com";
+    private InitializationOptions initializationOptions = new();
 
     [Export(PropertyHint.ResourceType)]
     private APIResource apiResource;

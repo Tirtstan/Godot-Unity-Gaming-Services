@@ -33,11 +33,15 @@ Scripts are communicated by singletons like in Unity. I only use one initial God
 
 ## Initialization
 
+### Default
+
 ```csharp
+using Unity.Services.Core;
+
 public override async void _Ready()
 {
 	UnityServices.Instance.OnInitialize += OnInitialize;
-	await UnityServices.Instance.InitializeAsync();
+	await UnityServices.Instance.InitializeAsync(); // this is required to do anything with UGS
 }
 
 private void OnInitialize(bool isInitialized)
@@ -49,11 +53,27 @@ private void OnInitialize(bool isInitialized)
 }
 ```
 
+### Custom Environment
+
+```csharp
+using Unity.Services.Core;
+
+public override async void _Ready()
+{
+    var options = new InitializationOptions();
+    initializationOptions.SetEnvironmentName("experimental");
+
+    await UnityServices.Instance.InitializeAsync(options);
+}
+```
+
 ## Authentication
 
 ### Username & Password
 
 ```csharp
+using Unity.Services.Authentication;
+
 private async void SignUp(string username, string password)
 {
 	try
