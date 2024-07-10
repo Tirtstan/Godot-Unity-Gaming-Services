@@ -9,13 +9,17 @@ namespace Unity.Services.Core;
 
 public partial class UnityServices : Node
 {
-    [Export(PropertyHint.ResourceType)]
-    private APIResource apiResource;
     public static UnityServices Instance { get; private set; }
-    private RestClient restClient;
-    private const string UnityServicesUrl = "https://services.api.unity.com";
+    public string Environment => initializationOptions.Environment;
     public string ProjectId => apiResource.ProjectId;
     public event Action<bool> OnInitialize;
+
+    private const string UnityServicesUrl = "https://services.api.unity.com";
+    private InitializationOptions initializationOptions = new();
+
+    [Export(PropertyHint.ResourceType)]
+    private APIResource apiResource;
+    private RestClient restClient;
 
     public override void _EnterTree() => Instance = this;
 
@@ -24,8 +28,14 @@ public partial class UnityServices : Node
         restClient = new RestClient(UnityServicesUrl);
     }
 
-    public async Task InitializeAsync()
+    public async Task InitializeAsync(InitializationOptions options = null)
     {
+        if (apiResource == null)
+            throw new NullReferenceException("API Resource is not set!");
+
+        if (options != null)
+            initializationOptions = options;
+
         var request = new RestRequest(UnityServicesUrl).AddHeader(
             "Authorization",
             $"Basic {apiResource.ServiceAccountCredentials}"

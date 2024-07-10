@@ -1,6 +1,6 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity_REST_API_CSharp", "Unity_REST_API_CSharp.csproj", "{818FECC2-476F-42AE-9BD7-3ABC3923E8F7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Godot-Unity-Gaming-Services", "Godot-Unity-Gaming-Services.csproj", "{818FECC2-476F-42AE-9BD7-3ABC3923E8F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
