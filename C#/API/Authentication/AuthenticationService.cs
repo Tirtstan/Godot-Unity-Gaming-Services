@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
@@ -19,15 +18,19 @@ public partial class AuthenticationService : Node
     public string AccessToken => UserSession.idToken;
     public string PlayerId => UserSession.user.id;
     public string PlayerName => UserSession.user.username;
+    public string Profile => currentProfile;
     public bool SessionTokenExists => !string.IsNullOrEmpty(SessionToken);
     public string LastNotificationDate =>
         DateTime.UnixEpoch.AddMilliseconds(UserSession.lastNotificationDate).ToString();
 
     private RestClient authClient;
+    private ConfigFile config = new();
     private UserSession UserSession = new();
     private string SessionToken => UserSession.sessionToken;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
+    private const string Persistents = "Persistents";
+    private string currentProfile = "DefaultProfile";
 
     public override void _EnterTree() => Instance = this;
 
@@ -42,7 +45,8 @@ public partial class AuthenticationService : Node
             }
         );
 
-        LoadUserTokens();
+        LoadPersistents();
+        LoadCache();
     }
 
     /// <summary>
@@ -69,7 +73,7 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
         {
             UserSession = response.Data;
-            SaveUserTokens();
+            SaveCache();
             SignedIn?.Invoke();
         }
         else
@@ -87,7 +91,7 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
         {
             UserSession = response.Data;
-            SaveUserTokens();
+            SaveCache();
             SignedIn?.Invoke();
         }
         else
@@ -111,7 +115,7 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
         {
             UserSession = response.Data;
-            SaveUserTokens();
+            SaveCache();
             SignedIn?.Invoke();
         }
         else
@@ -134,7 +138,7 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
         {
             UserSession = response.Data;
-            SaveUserTokens();
+            SaveCache();
             SignedIn?.Invoke();
         }
         else
@@ -162,7 +166,7 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
         {
             UserSession = response.Data;
-            SaveUserTokens();
+            SaveCache();
             SignedIn?.Invoke();
         }
         else
@@ -185,7 +189,7 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
         {
             UserSession = response.Data;
-            SaveUserTokens();
+            SaveCache();
             SignedIn?.Invoke();
         }
         else
@@ -267,35 +271,42 @@ public partial class AuthenticationService : Node
         }
     }
 
+    public void SwitchProfile(string profileName)
+    {
+        if (string.IsNullOrEmpty(profileName))
+            currentProfile = "DefaultProfile";
+        else
+            currentProfile = profileName;
+
+        SavePersistents();
+        LoadCache();
+    }
+
     /// <summary>
     /// Deletes the session token if it exists.
     /// </summary>
     public void ClearSessionToken()
     {
         UserSession.sessionToken = "";
-        SaveUserTokens();
+        SaveCache();
     }
 
     private void ClearAccessToken()
     {
         UserSession.idToken = "";
-        SaveUserTokens();
+        SaveCache();
     }
 
-    private void SaveUserTokens()
+    private void SaveCache()
     {
-        var config = new ConfigFile();
-        const string Section = "GodotUGS";
-
-        config.SetValue(Section, "idToken", AccessToken);
-        config.SetValue(Section, "sessionToken", SessionToken);
+        config.SetValue(currentProfile, "idToken", AccessToken);
+        config.SetValue(currentProfile, "sessionToken", SessionToken);
 
         config.Save(CachePath);
     }
 
-    private void LoadUserTokens()
+    private void LoadCache()
     {
-        var config = new ConfigFile();
         Error error = config.Load(CachePath);
         if (error != Error.Ok)
             return;
@@ -303,8 +314,33 @@ public partial class AuthenticationService : Node
         UserSession = new UserSession();
         foreach (string section in config.GetSections())
         {
-            UserSession.idToken = (string)config.GetValue(section, "idToken");
-            UserSession.sessionToken = (string)config.GetValue(section, "sessionToken");
+            if (section == currentProfile)
+            {
+                UserSession.idToken = (string)config.GetValue(section, "idToken");
+                UserSession.sessionToken = (string)config.GetValue(section, "sessionToken");
+            }
+        }
+    }
+
+    private void SavePersistents()
+    {
+        config.SetValue(Persistents, "lastUsedProfile", currentProfile);
+
+        config.Save(CachePath);
+    }
+
+    private void LoadPersistents()
+    {
+        Error error = config.Load(CachePath);
+        if (error != Error.Ok)
+            return;
+
+        foreach (string section in config.GetSections())
+        {
+            if (section == Persistents)
+            {
+                currentProfile = (string)config.GetValue(section, "lastUsedProfile");
+            }
         }
     }
 }
