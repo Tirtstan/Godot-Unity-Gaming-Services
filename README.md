@@ -26,6 +26,8 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 
 ## Planned
 
+-   Authentication
+    -   Code Sign In
 -   Leaderboards
 -   User Generated Content
 
@@ -99,7 +101,7 @@ private async void SignInAnonymously()
     try
     {
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
-        GD.Print("Signed in as!: " + AuthenticationService.Instance.PlayerId);
+        GD.Print("Signed in ID: " + AuthenticationService.Instance.PlayerId);
     }
     catch (System.Exception e)
     {
@@ -119,7 +121,7 @@ private async void SignUp(string username, string password)
     try
     {
         await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
-        GD.Print("Signed up as!: " + AuthenticationService.Instance.PlayerId);
+        GD.Print("Signed up ID: " + AuthenticationService.Instance.PlayerId);
     }
     catch (System.Exception e)
     {
@@ -132,7 +134,7 @@ private async void SignIn(string username, string password)
     try
     {
         await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
-        GD.Print("Signed in as!: " + AuthenticationService.Instance.PlayerId);
+        GD.Print("Signed in ID: " + AuthenticationService.Instance.PlayerId);
     }
     catch (System.Exception e)
     {
