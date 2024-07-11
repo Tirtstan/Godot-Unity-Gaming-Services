@@ -1,6 +1,6 @@
 # Godot Unity Gaming Services
 
-Basic SKD for connecting **[Unity Gaming Services](https://unity.com/solutions/gaming-services)** to **Godot 4.2+** using C#. Not sure if I will continue creating and updating this project as I just wanted the ability to use Unity's User Generated Content in any project I make.
+Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot 4.2+** using C#. Not sure if I will continue creating and updating this project as I just wanted the ability to use Unity's User Generated Content in any project I make.
 
 **This SDK is still under development. It may never be finished.**
 
@@ -14,15 +14,15 @@ I have tried to keep the implementation of the SDK as similar to Unity's version
 
 Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.
 
-**Some services require your Unity organization's service account credentials. Find out how and when [here](https://services.docs.unity.com/docs/service-account-auth/).**
+**Some services require your [Unity organization's service account credentials](https://services.docs.unity.com/docs/service-account-auth).**
 
 # Unity Gaming Services
 
 ## In Development
 
 -   Authentication
-    -   Notification support
-    -   Much more polish
+    -   JWT token validating (no idea)
+    -   Polish
 
 ## Planned
 
@@ -41,11 +41,11 @@ using Unity.Services.Core;
 
 public override async void _Ready()
 {
-	UnityServices.Instance.OnInitialize += OnInitialize;
+    UnityServices.Instance.OnInitialize += OnInitialize;
 
-	try
+    try
     {
-        await UnityServices.Instance.InitializeAsync(); // this is required to do anything with UGS
+        await UnityServices.Instance.InitializeAsync(options); // this is required to do anything with UGS
     }
     catch (System.Exception e)
     {
@@ -55,10 +55,10 @@ public override async void _Ready()
 
 private void OnInitialize(bool isInitialized)
 {
-	if (!isInitialized)
-		return;
+    if (!isInitialized)
+        return;
 
-	GD.Print("Unity Services Initialized!");
+    GD.Print("Unity Services Initialized!");
 }
 ```
 
@@ -70,10 +70,10 @@ using Unity.Services.Core;
 
 public override async void _Ready()
 {
-	var options = new InitializationOptions();
-	initializationOptions.SetEnvironmentName("experimental");
+    var options = new InitializationOptions();
+    initializationOptions.SetEnvironmentName("experimental");
 
-	try
+    try
     {
         await UnityServices.Instance.InitializeAsync(options);
     }
@@ -96,15 +96,15 @@ using Unity.Services.Authentication;
 // they are signed back in regardless of if they're an anonymous player or not.
 private async void SignInAnonymously()
 {
-	try
-	{
-		await AuthenticationService.Instance.SignInAnonymouslyAsync();
-		GD.Print("Signed in as!: " + AuthenticationService.Instance.PlayerId);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        GD.Print("Signed in as!: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
 
@@ -116,27 +116,27 @@ using Unity.Services.Authentication;
 
 private async void SignUp(string username, string password)
 {
-	try
-	{
-		await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
-		GD.Print("Signed up as!: " + AuthenticationService.Instance.PlayerId);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
+        GD.Print("Signed up as!: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 
 private async void SignIn(string username, string password)
 {
-	try
-	{
-		await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
-		GD.Print("Signed in as!: " + AuthenticationService.Instance.PlayerId);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
+        GD.Print("Signed in as!: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```

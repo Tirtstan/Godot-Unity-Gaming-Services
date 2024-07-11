@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
@@ -19,7 +20,8 @@ public partial class AuthenticationService : Node
     public string PlayerId => UserSession.user.id;
     public string PlayerName => UserSession.user.username;
     public bool SessionTokenExists => !string.IsNullOrEmpty(SessionToken);
-    public string LastNotificationDate => DateTime.UnixEpoch.AddSeconds(UserSession.lastNotificationDate).ToString();
+    public string LastNotificationDate =>
+        DateTime.UnixEpoch.AddMilliseconds(UserSession.lastNotificationDate).ToString();
 
     private RestClient authClient;
     private UserSession UserSession = new();
@@ -139,10 +141,6 @@ public partial class AuthenticationService : Node
         {
             throw response.ErrorException;
         }
-        /// <summary>
-        /// Sign out the current player.
-        /// </summary>
-        /// <param name="clearCredentials">Option to clear the session token that enables logging in to the same account</param>
     }
 
     /// <summary>
@@ -151,10 +149,11 @@ public partial class AuthenticationService : Node
     public async Task AddUsernamePasswordAsync(string username, string password)
     {
         if (string.IsNullOrEmpty(AccessToken))
-            throw new Exception("User must be signed in an already existant account to add a username and password.");
+            throw new NullReferenceException(
+                "User must be signed in an already existant account to add a username and password."
+            );
 
         string requestData = "{" + $@"""username"": ""{username}"", ""password"": ""{password}""" + "}";
-
         var request = new RestRequest("/authentication/usernamepassword/sign-up", Method.Post)
             .AddHeader("Authorization", $"Bearer {AccessToken}")
             .AddJsonBody(requestData);
@@ -178,14 +177,21 @@ public partial class AuthenticationService : Node
     public async Task UpdatePasswordAsync(string currentPassword, string newPassword)
     {
         string requestData = "{" + $@"""password"": ""{currentPassword}"", ""newPassword"": ""{newPassword}""" + "}";
-
         var request = new RestRequest("/authentication/usernamepassword/update-password", Method.Post)
-            .AddHeader("Authorization", $"Bearer {UserSession.idToken}")
+            .AddHeader("Authorization", $"Bearer {AccessToken}")
             .AddJsonBody(requestData);
 
-        var response = await authClient.ExecuteAsync(request);
-        if (!response.IsSuccessful)
+        var response = await authClient.ExecuteAsync<UserSession>(request);
+        if (response.IsSuccessful)
+        {
+            UserSession = response.Data;
+            SaveUserTokens();
+            SignedIn?.Invoke();
+        }
+        else
+        {
             throw response.ErrorException;
+        }
     }
 
     /// <summary>
@@ -224,6 +230,28 @@ public partial class AuthenticationService : Node
     }
 
     /// <summary>
+    /// Retrieves the Notifications that were created for the signed in player
+    /// </summary>
+    public async Task<List<Notification>> GetNotificationsAsync()
+    {
+        var request = new RestRequest($"/users/{PlayerId}/notifications").AddHeader(
+            "Authorization",
+            $"Bearer {AccessToken}"
+        );
+        request.RequestFormat = DataFormat.Json;
+
+        var response = await authClient.ExecuteAsync<NotificationList>(request);
+        if (response.IsSuccessful)
+        {
+            return response.Data.notifications;
+        }
+        else
+        {
+            throw response.ErrorException;
+        }
+    }
+
+    /// <summary>
     /// Deletes the session token if it exists.
     /// </summary>
     public void ClearSessionToken()
@@ -238,32 +266,13 @@ public partial class AuthenticationService : Node
         SaveUserTokens();
     }
 
-    // just won't serialize properly, used a wrapper class to fit the json schema more, made it "forbidden" rather then the usual json parse error
-
-    /// <summary>
-    /// Retrieves the Notifications that were created for the signed in player
-    /// </summary>
-    // public async Task<List<Notification>> GetNotificationsAsync()
-    // {
-    //     var request = new RestRequest($"/users/{PlayerId}/notifications") { RequestFormat = DataFormat.Json };
-
-    //     var response = await authClient.ExecuteAsync<List<Notification>>(request);
-    //     if (response.IsSuccessful)
-    //     {
-    //         return response.Data;
-    //     }
-    //     else
-    //     {
-    //         throw response.ErrorException;
-    //     }
-    // }
-
     private void SaveUserTokens()
     {
         var config = new ConfigFile();
+        const string Section = "GodotUGS";
 
-        config.SetValue("GodotUGS", "idToken", AccessToken);
-        config.SetValue("GodotUGS", "sessionToken", SessionToken);
+        config.SetValue(Section, "idToken", AccessToken);
+        config.SetValue(Section, "sessionToken", SessionToken);
 
         config.Save(CachePath);
     }
