@@ -4,4 +4,3 @@ addons/
 .vscode/
 C#/Resources/APIResource.tres
 C#/Testing/
-C#/API/User/player.info

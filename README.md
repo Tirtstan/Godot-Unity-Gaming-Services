@@ -26,6 +26,9 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 
 ## Planned
 
+-   Authentication
+    -   Code Sign In
+    -   Profiles
 -   Leaderboards
 -   User Generated Content
 

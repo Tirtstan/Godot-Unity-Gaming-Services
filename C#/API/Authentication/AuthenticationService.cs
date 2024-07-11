@@ -26,7 +26,7 @@ public partial class AuthenticationService : Node
     private RestClient authClient;
     private UserSession UserSession = new();
     private string SessionToken => UserSession.sessionToken;
-    private const string AuthURL = "https://player-auth.services.api.unity.com/v1/";
+    private const string AuthURL = "https://player-auth.services.api.unity.com/v1";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
 
     public override void _EnterTree() => Instance = this;
@@ -55,7 +55,7 @@ public partial class AuthenticationService : Node
     {
         try
         {
-            if (!string.IsNullOrEmpty(SessionToken))
+            if (SessionTokenExists)
             {
                 await SignInWithSessionToken(SessionToken);
                 return;
@@ -227,6 +227,22 @@ public partial class AuthenticationService : Node
 
         UserSession = new UserSession();
         SignedOut?.Invoke();
+    }
+
+    public async Task<PlayerInfo> GetPlayerInfoAsync()
+    {
+        var request = new RestRequest($"/users/{PlayerId}").AddHeader("Authorization", $"Bearer {AccessToken}");
+        request.RequestFormat = DataFormat.Json;
+
+        var response = await authClient.ExecuteAsync<PlayerInfo>(request);
+        if (response.IsSuccessful)
+        {
+            return response.Data;
+        }
+        else
+        {
+            throw response.ErrorException;
+        }
     }
 
     /// <summary>
