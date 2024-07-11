@@ -14,15 +14,15 @@ I have tried to keep the implementation of the SDK as similar to Unity's version
 
 Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.
 
-**Some services require your Unity organization's service account credentials. Find out how and when [here](https://services.docs.unity.com/docs/service-account-auth/).**
+**Some services require your [Unity organization's service account credentials](https://services.docs.unity.com/docs/service-account-auth).**
 
 # Unity Gaming Services
 
 ## In Development
 
 -   Authentication
-    -   Notification support
-    -   Much more polish
+    -   JWT token validating (no idea)
+    -   Polish
 
 ## Planned
 
@@ -44,13 +44,13 @@ public override async void _Ready()
 	UnityServices.Instance.OnInitialize += OnInitialize;
 
 	try
-    {
-        await UnityServices.Instance.InitializeAsync(); // this is required to do anything with UGS
-    }
-    catch (System.Exception e)
-    {
-        GD.PrintErr(e);
-    }
+	{
+		await UnityServices.Instance.InitializeAsync(); // this is required to do anything with UGS
+	}
+	catch (System.Exception e)
+	{
+		GD.PrintErr(e);
+	}
 }
 
 private void OnInitialize(bool isInitialized)
@@ -74,13 +74,13 @@ public override async void _Ready()
 	initializationOptions.SetEnvironmentName("experimental");
 
 	try
-    {
-        await UnityServices.Instance.InitializeAsync(options);
-    }
-    catch (System.Exception e)
-    {
-        GD.PrintErr(e);
-    }
+	{
+		await UnityServices.Instance.InitializeAsync(options);
+	}
+	catch (System.Exception e)
+	{
+		GD.PrintErr(e);
+	}
 }
 ```
 
