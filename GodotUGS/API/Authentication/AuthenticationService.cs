@@ -213,8 +213,7 @@ public partial class AuthenticationService : Node
         if (!response.IsSuccessful)
             throw response.ErrorException;
 
-        ClearAccessToken();
-        ClearSessionToken();
+        SignOut(true);
     }
 
     /// <summary>
@@ -311,15 +310,11 @@ public partial class AuthenticationService : Node
         if (error != Error.Ok)
             return;
 
-        UserSession = new UserSession();
-        foreach (string section in config.GetSections())
+        UserSession = new UserSession
         {
-            if (section == currentProfile)
-            {
-                UserSession.idToken = (string)config.GetValue(section, "idToken");
-                UserSession.sessionToken = (string)config.GetValue(section, "sessionToken");
-            }
-        }
+            idToken = (string)config.GetValue(currentProfile, "idToken"),
+            sessionToken = (string)config.GetValue(currentProfile, "sessionToken")
+        };
     }
 
     private void SavePersistents()
@@ -335,12 +330,6 @@ public partial class AuthenticationService : Node
         if (error != Error.Ok)
             return;
 
-        foreach (string section in config.GetSections())
-        {
-            if (section == Persistents)
-            {
-                currentProfile = (string)config.GetValue(section, "lastUsedProfile");
-            }
-        }
+        currentProfile = (string)config.GetValue(Persistents, "lastUsedProfile");
     }
 }

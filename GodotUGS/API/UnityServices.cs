@@ -32,11 +32,15 @@ public partial class UnityServices : Node
     {
         if (apiResource == null)
             throw new NullReferenceException("API Resource is not set!");
+        else if (string.IsNullOrEmpty(apiResource.ProjectId))
+            throw new NullReferenceException("Project ID is not set!");
 
         if (options != null)
             initializationOptions = options;
 
-        var request = new RestRequest().AddHeader("Authorization", $"Basic {apiResource.ServiceAccountCredentials}");
+        var request = new RestRequest();
+        if (!string.IsNullOrEmpty(apiResource.ServiceAccountCredentials))
+            request.AddHeader("Authorization", $"Basic {apiResource.ServiceAccountCredentials}");
 
         var response = await restClient.ExecuteAsync(request);
         OnInitialize?.Invoke(response.IsSuccessful);

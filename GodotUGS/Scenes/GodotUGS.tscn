@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://ddplf011y54gu"]
+
+[ext_resource type="Script" path="res://GodotUGS/API/UnityServices.cs" id="1_4tj83"]
+[ext_resource type="Resource" uid="uid://bshex3xqk7d4y" path="res://GodotUGS/Resources/APIResource.tres" id="2_uy88d"]
+[ext_resource type="Script" path="res://GodotUGS/API/Authentication/AuthenticationService.cs" id="3_g63vc"]
+
+[node name="Unity" type="Node"]
+
+[node name="UnityServices" type="Node" parent="."]
+script = ExtResource("1_4tj83")
+apiResource = ExtResource("2_uy88d")
+
+[node name="AuthenticationService" type="Node" parent="."]
+script = ExtResource("3_g63vc")

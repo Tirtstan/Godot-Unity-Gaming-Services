@@ -21,13 +21,13 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 ## In Development
 
 -   Authentication
+    -   Code Sign In
     -   JWT token validating (no idea)
     -   Polish
+-   Cloud Save
 
 ## Planned
 
--   Authentication
-    -   Code Sign In
 -   Leaderboards
 -   User Generated Content
 
@@ -47,7 +47,7 @@ public override async void _Ready()
 
     try
     {
-        await UnityServices.Instance.InitializeAsync(options); // this is required to do anything with UGS
+        await UnityServices.Instance.InitializeAsync(); // required to do anything with UGS
     }
     catch (System.Exception e)
     {
