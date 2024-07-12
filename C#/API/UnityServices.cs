@@ -36,7 +36,9 @@ public partial class UnityServices : Node
         if (options != null)
             initializationOptions = options;
 
-        var request = new RestRequest().AddHeader("Authorization", $"Basic {apiResource.ServiceAccountCredentials}");
+        var request = new RestRequest();
+        if (!string.IsNullOrEmpty(apiResource.ServiceAccountCredentials))
+            request.AddHeader("Authorization", $"Basic {apiResource.ServiceAccountCredentials}");
 
         var response = await restClient.ExecuteAsync(request);
         OnInitialize?.Invoke(response.IsSuccessful);
