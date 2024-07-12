@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="APIResource" load_steps=2 format=3 uid="uid://bshex3xqk7d4y"]
-
-[ext_resource type="Script" path="res://GodotUGS/Resources/APIResource.cs" id="1_y72ft"]
-
-[resource]
-script = ExtResource("1_y72ft")
-ServiceAccountCredentials = ""
-ProjectId = "82ad2861-af64-4976-a5e5-6505b87d357c"

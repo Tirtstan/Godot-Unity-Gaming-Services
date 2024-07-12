@@ -2,5 +2,4 @@
 .godot/
 addons/
 .vscode/
-C#/Resources/APIResource.tres
-C#/Testing/
+DontShip/
