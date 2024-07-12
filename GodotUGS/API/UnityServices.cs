@@ -32,6 +32,8 @@ public partial class UnityServices : Node
     {
         if (apiResource == null)
             throw new NullReferenceException("API Resource is not set!");
+        else if (string.IsNullOrEmpty(apiResource.ProjectId))
+            throw new NullReferenceException("Project ID is not set!");
 
         if (options != null)
             initializationOptions = options;
