@@ -21,7 +21,6 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 ## In Development
 
 -   Authentication
-    -   Code Sign In
     -   JWT token validating (no idea)
     -   Polish
 -   Cloud Save
