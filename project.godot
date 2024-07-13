@@ -17,15 +17,11 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Unity="*res://GodotUGS/Scenes/GodotUGS.tscn"
+Unity="*res://addons/GodotUGS/Scenes/GodotUGS.tscn"
 
 [dotnet]
 
 project/assembly_name="Godot-Unity-Gaming-Services"
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/rebuild_cs_on_focus/plugin.cfg")
 
 [input]
 
