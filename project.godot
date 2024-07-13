@@ -11,17 +11,20 @@ config_version=5
 [application]
 
 config/name="Godot Unity Gaming Services"
-run/main_scene="res://DontShip/Scenes/Main.tscn"
 config/features=PackedStringArray("4.2", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
-Unity="*res://addons/GodotUGS/Scenes/GodotUGS.tscn"
+GodotUGS="*res://addons/GodotUGS/Autoloads/GodotUGS.tscn"
 
 [dotnet]
 
 project/assembly_name="Godot-Unity-Gaming-Services"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/GodotUGS/plugin.cfg")
 
 [input]
 

@@ -10,6 +10,12 @@ Maybe someone can use this as a jumping point to create a final version or contr
 
 Using the wonderful **[RestSharp](https://github.com/RestSharp/RestSharp)** to make this process a little easier.
 
+**NB:** it is very important that you install the RestSharp package into your project for this plugin it work.
+
+```properties
+dotnet add package RestSharp
+```
+
 I have tried to keep the implementation of the SDK as similar to Unity's version for their engine. I am very inexperienced with the making of REST API's so bare with me here (or fork/contribute!).
 
 Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.

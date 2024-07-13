@@ -286,14 +286,20 @@ public partial class AuthenticationService : Node
     /// </summary>
     public void ClearSessionToken()
     {
-        UserSession.sessionToken = "";
-        SaveCache();
+        Error error = config.Load(CachePath);
+        if (error != Error.Ok)
+            return;
+
+        config.EraseSectionKey(currentProfile, "sessionToken");
     }
 
     private void ClearAccessToken()
     {
-        UserSession.idToken = "";
-        SaveCache();
+        Error error = config.Load(CachePath);
+        if (error != Error.Ok)
+            return;
+
+        config.EraseSectionKey(currentProfile, "idToken");
     }
 
     private void SaveCache()
@@ -310,11 +316,15 @@ public partial class AuthenticationService : Node
         if (error != Error.Ok)
             return;
 
-        UserSession = new UserSession
+        UserSession = new UserSession();
+        if (config.HasSection(currentProfile))
         {
-            idToken = (string)config.GetValue(currentProfile, "idToken"),
-            sessionToken = (string)config.GetValue(currentProfile, "sessionToken")
-        };
+            UserSession = new UserSession
+            {
+                idToken = (string)config.GetValue(currentProfile, "idToken"),
+                sessionToken = (string)config.GetValue(currentProfile, "sessionToken")
+            };
+        }
     }
 
     private void SavePersistents()
@@ -330,6 +340,7 @@ public partial class AuthenticationService : Node
         if (error != Error.Ok)
             return;
 
-        currentProfile = (string)config.GetValue(Persistents, "lastUsedProfile");
+        if (config.HasSection(Persistents))
+            currentProfile = (string)config.GetValue(Persistents, "lastUsedProfile");
     }
 }
