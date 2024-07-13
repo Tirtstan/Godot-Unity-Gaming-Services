@@ -4,5 +4,4 @@
 
 [resource]
 script = ExtResource("1_gyuap")
-ServiceAccountCredentials = ""
 ProjectId = ""

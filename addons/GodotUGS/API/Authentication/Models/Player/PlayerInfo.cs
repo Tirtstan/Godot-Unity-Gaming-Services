@@ -6,7 +6,7 @@ public class PlayerInfo
 {
     public string Username => usernamepassword.username;
     public bool disabled { get; set; }
-    public ExternalId[] externalIds { get; set; } = [];
+    public ExternalId[] externalIds { get; set; } = { };
     public string id { get; set; } = "";
     public string createdAt { get; set; } = "";
     public string lastLoginAt { get; set; } = "";
