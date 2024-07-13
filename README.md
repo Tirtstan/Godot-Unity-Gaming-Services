@@ -12,7 +12,7 @@ Using the wonderful **[RestSharp](https://github.com/RestSharp/RestSharp)** to m
 
 **NB:** it is very important that you install the RestSharp package into your project for this plugin it work.
 
-```properties
+```console
 dotnet add package RestSharp
 ```
 
@@ -24,16 +24,13 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 
 # Unity Gaming Services
 
-## In Development
+## Planned
 
 -   Authentication
     -   JWT token validating (no idea)
     -   Polish
--   Cloud Save
-
-## Planned
-
 -   Leaderboards
+-   Cloud Save
 -   User Generated Content
 
 # Services
@@ -93,7 +90,7 @@ public override async void _Ready()
 
 ## Authentication
 
-### Anonymous
+### Anonymous & Session Sign In
 
 ```csharp
 using Godot;
