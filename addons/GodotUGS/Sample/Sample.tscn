@@ -1,0 +1,75 @@
+[gd_scene load_steps=2 format=3 uid="uid://bl5obagt4dofy"]
+
+[ext_resource type="Script" path="res://addons/GodotUGS/Sample/Sample.cs" id="1_u0glj"]
+
+[node name="Sample" type="Node"]
+script = ExtResource("1_u0glj")
+
+[node name="Buttons" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="InitializeButton" type="Button" parent="Buttons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -93.0
+offset_top = -159.5
+offset_right = 93.0
+offset_bottom = -128.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+text = "Initialize Unity Services"
+
+[node name="SignInButton" type="Button" parent="Buttons"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -85.0
+offset_top = -111.5
+offset_right = 85.0
+offset_bottom = -80.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+disabled = true
+text = "Sign In Anonymously"
+
+[node name="InformationLabels" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PlayerInfoLabel" type="RichTextLabel" parent="InformationLabels"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -459.0
+offset_top = -57.0
+offset_right = 459.0
+offset_bottom = 58.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]Currently Not Signed In...[/center]"
+fit_content = true
+scroll_active = false
