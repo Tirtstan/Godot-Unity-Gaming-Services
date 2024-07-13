@@ -2,15 +2,15 @@
 
 Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot 4.2+** using C#. Not sure if I will continue creating and updating this project as I just wanted the ability to use Unity's User Generated Content in any project I make.
 
-**This SDK is still under development. It may never be finished.**
+**This SDK is still under early development.**
 
-Maybe someone can use this as a jumping point to create a final version or contribute to this directly.
+Use this as a jumping point to create a bigger, final version or contribute directly.
 
 # Architecture
 
 Using the wonderful **[RestSharp](https://github.com/RestSharp/RestSharp)** to make this process a little easier.
 
-**NB:** it is very important that you install the RestSharp package into your project for this plugin it work.
+**NB: You must install the RestSharp package into your project for this plugin it work.**
 
 ```console
 dotnet add package RestSharp
@@ -19,8 +19,6 @@ dotnet add package RestSharp
 I have tried to keep the implementation of the SDK as similar to Unity's version for their engine. I am very inexperienced with the making of REST API's so bare with me here (or fork/contribute!).
 
 Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.
-
-**Some services require your [Unity organization's service account credentials](https://services.docs.unity.com/docs/service-account-auth).**
 
 # Unity Gaming Services
 

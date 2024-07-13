@@ -31,17 +31,19 @@ public partial class UnityServices : Node
     public async Task InitializeAsync(InitializationOptions options = null)
     {
         if (apiResource == null)
+        {
             throw new NullReferenceException("API Resource is not set!");
+        }
         else if (string.IsNullOrEmpty(apiResource.ProjectId))
-            throw new NullReferenceException("Project ID is not set!");
+        {
+            GD.PrintErr("Project ID is not set!");
+            return;
+        }
 
         if (options != null)
             initializationOptions = options;
 
         var request = new RestRequest();
-        if (!string.IsNullOrEmpty(apiResource.ServiceAccountCredentials))
-            request.AddHeader("Authorization", $"Basic {apiResource.ServiceAccountCredentials}");
-
         var response = await restClient.ExecuteAsync(request);
         OnInitialize?.Invoke(response.IsSuccessful);
 
