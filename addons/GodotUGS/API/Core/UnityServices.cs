@@ -14,7 +14,7 @@ public partial class UnityServices : Node
     public string ProjectId => apiResource.ProjectId;
     public event Action<bool> OnInitialize;
 
-    private const string UnityServicesUrl = "https://services.api.unity.com";
+    private const string UnityServicesURL = "https://services.api.unity.com";
     private InitializationOptions initializationOptions = new();
 
     [Export(PropertyHint.ResourceType)]
@@ -25,7 +25,7 @@ public partial class UnityServices : Node
 
     public override void _Ready()
     {
-        restClient = new RestClient(UnityServicesUrl);
+        restClient = new RestClient(UnityServicesURL);
     }
 
     public async Task InitializeAsync(InitializationOptions options = null)

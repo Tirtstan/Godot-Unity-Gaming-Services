@@ -2,13 +2,13 @@ namespace Unity.Services.Authentication.Models;
 
 public class UserSession
 {
-    public int expiresIn { get; set; }
-    public string idToken { get; set; } = "";
-    public string sessionToken { get; set; } = "";
-    public double lastNotificationDate { get; set; }
-    public User user { get; set; } = new();
-    public string userId { get; set; } = "";
+    public int ExpiresIn { get; set; }
+    public string IdToken { get; set; } = "";
+    public string SessionToken { get; set; } = "";
+    public double LastNotificationDate { get; set; }
+    public User User { get; set; } = new();
+    public string UserId { get; set; } = "";
 
     public override string ToString() =>
-        $"IdToken: {idToken}, SessionToken: {sessionToken}, UserId: {userId}, ExpiresIn: {expiresIn}, User: {user}";
+        $"IdToken: {IdToken}, SessionToken: {SessionToken}, UserId: {UserId}, ExpiresIn: {ExpiresIn}, User: {User}";
 }
