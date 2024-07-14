@@ -1,12 +1,18 @@
 namespace Unity.Services.Authentication.Models;
 
+using System.Text.Json.Serialization;
+
 public class User
 {
+    [JsonPropertyName("disabled")]
     public bool Disabled { get; set; }
-    public Identity[] ExternalIds { get; set; } = { };
-    public string Id { get; set; } = "";
-    public string Username { get; set; } = "";
 
-    public override string ToString() =>
-        $"Id: {Id}, Username: {Username}, Disabled: {Disabled}, ExternalIds (Count): {ExternalIds.Length}";
+    [JsonPropertyName("externalIds")]
+    public Identity[] ExternalIds { get; set; } = { };
+
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = "";
+
+    [JsonPropertyName("username")]
+    public string Username { get; set; } = "";
 }

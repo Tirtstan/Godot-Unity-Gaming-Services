@@ -263,7 +263,7 @@ public partial class AuthenticationService : Node
         var response = await authClient.ExecuteAsync<NotificationList>(request);
         if (response.IsSuccessful)
         {
-            return response.Data.notifications;
+            return response.Data.Notifications;
         }
         else
         {
@@ -285,6 +285,48 @@ public partial class AuthenticationService : Node
 
         SavePersistents();
         LoadCache();
+    }
+
+    /// <summary>
+    /// Returns the name of the logged in player if it has been set.
+    /// If no name has been set, this will return null if autoGenerate is set to false.
+    /// </summary>
+    /// <param name="autoGenerate">Option auto generate a player name if none already exist. Defaults to true</param>
+    /// <returns>Task for the operation with the resulting player name</returns>
+    public async Task<string> GetPlayerNameAsync(bool autoGenerate = true)
+    {
+        var request = new RestRequest($"https://social.services.api.unity.com/v1/names/{PlayerId}").AddQueryParameter(
+            "autoGenerate",
+            autoGenerate
+        );
+        request.Authenticator = new JwtAuthenticator(AccessToken);
+        request.RequestFormat = DataFormat.Json;
+
+        var response = await authClient.ExecuteAsync<PlayerName>(request);
+        if (response.IsSuccessful)
+            return response.Data.Name;
+        else
+            throw response.ErrorException;
+    }
+
+    /// <summary>
+    /// Updates the player name of the logged in player.
+    /// </summary>
+    /// <param name="name">The new name for the player. It must not contain spaces.</param>
+    /// <returns>Task for the operation with the resulting player name</returns>
+    public async Task<string> UpdatePlayerNameAsync(string name)
+    {
+        var request = new RestRequest(
+            $"https://social.services.api.unity.com/v1/names/{PlayerId}",
+            Method.Post
+        ).AddJsonBody(new { name });
+        request.Authenticator = new JwtAuthenticator(AccessToken);
+
+        var response = await authClient.ExecuteAsync<PlayerName>(request);
+        if (response.IsSuccessful)
+            return response.Data.Name;
+        else
+            throw response.ErrorException;
     }
 
     // public async void ProcessAuthenticationTokens(string accessToken, string sessionToken = null)

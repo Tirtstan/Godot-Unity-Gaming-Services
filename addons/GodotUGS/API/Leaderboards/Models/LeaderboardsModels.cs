@@ -43,36 +43,43 @@ public class LeaderboardEntry
     /// <summary>
     /// Parameter playerId of LeaderboardEntry
     /// </summary>
+    [JsonPropertyName("playerId")]
     public string PlayerId { get; }
 
     /// <summary>
     /// Parameter playerName of LeaderboardEntry
     /// </summary>
+    [JsonPropertyName("playerName")]
     public string PlayerName { get; }
 
     /// <summary>
     /// Parameter rank of LeaderboardEntry
     /// </summary>
+    [JsonPropertyName("rank")]
     public int Rank { get; }
 
     /// <summary>
     /// Parameter score of LeaderboardEntry
     /// </summary>
+    [JsonPropertyName("score")]
     public double Score { get; }
 
     /// <summary>
     /// Parameter tier of LeaderboardEntry
     /// </summary>
+    [JsonPropertyName("tier")]
     public string Tier { get; }
 
     /// <summary>
     /// Parameter updatedTime of LeaderboardEntry
     /// </summary>
+    [JsonPropertyName("updatedTime")]
     public DateTime UpdatedTime { get; }
 
     /// <summary>
     /// Parameter metadata of LeaderboardEntry
     /// </summary>
+    [JsonPropertyName("metadata")]
     public string Metadata { get; }
 }
 
@@ -104,21 +111,25 @@ public class LeaderboardScoresPage
     /// <summary>
     /// Parameter offset of LeaderboardScoresPage
     /// </summary>
+    [JsonPropertyName("offset")]
     public int Offset { get; }
 
     /// <summary>
     /// Parameter limit of LeaderboardScoresPage
     /// </summary>
+    [JsonPropertyName("limit")]
     public int Limit { get; }
 
     /// <summary>
     /// Parameter total of LeaderboardScoresPage
     /// </summary>
+    [JsonPropertyName("total")]
     public int Total { get; }
 
     /// <summary>
     /// Parameter results of LeaderboardScoresPage
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardEntry> Results { get; }
 }
 
@@ -139,6 +150,7 @@ public class LeaderboardScores
     /// <summary>
     /// Parameter results of LeaderboardScores
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardEntry> Results { get; }
 }
 
@@ -173,26 +185,31 @@ public class LeaderboardTierScoresPage
     /// <summary>
     /// Parameter tier of LeaderboardTierScoresPage
     /// </summary>
+    [JsonPropertyName("tier")]
     public string Tier { get; }
 
     /// <summary>
     /// Parameter offset of LeaderboardTierScoresPage
     /// </summary>
+    [JsonPropertyName("offset")]
     public int Offset { get; }
 
     /// <summary>
     /// Parameter limit of LeaderboardTierScoresPage
     /// </summary>
+    [JsonPropertyName("limit")]
     public int Limit { get; }
 
     /// <summary>
     /// Parameter total of LeaderboardTierScoresPage
     /// </summary>
+    [JsonPropertyName("total")]
     public int Total { get; }
 
     /// <summary>
     /// Parameter results of LeaderboardTierScoresPage
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardEntry> Results { get; }
 }
 
@@ -218,6 +235,7 @@ public class LeaderboardScoresWithNotFoundPlayerIds
     /// <summary>
     /// Parameter results of LeaderboardScoresWithNotFoundPlayerIds
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardEntry> Results { get; }
 
     /// <summary>
@@ -246,11 +264,13 @@ public class LeaderboardVersionScores
     /// <summary>
     /// Parameter version of LeaderboardVersionScores
     /// </summary>
+    [JsonPropertyName("version")]
     public LeaderboardVersion Version { get; }
 
     /// <summary>
     /// Parameter results of LeaderboardVersionScores
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardEntry> Results { get; }
 }
 
@@ -279,16 +299,19 @@ public class LeaderboardVersionScoresWithNotFoundPlayerIds
     /// <summary>
     /// Parameter version of LeaderboardVersionScoresWithNotFoundPlayerIds
     /// </summary>
+    [JsonPropertyName("version")]
     public LeaderboardVersion Version { get; }
 
     /// <summary>
     /// Parameter results of LeaderboardVersionScoresWithNotFoundPlayerIds
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardEntry> Results { get; }
 
     /// <summary>
     /// Parameter entriesNotFoundForPlayerIds of LeaderboardVersionScoresWithNotFoundPlayerIds
     /// </summary>
+    [JsonPropertyName("entriesNotFoundForPlayerIds")]
     public List<string> EntriesNotFoundForPlayerIds { get; }
 }
 
@@ -323,26 +346,31 @@ public class LeaderboardVersionEntry
     /// <summary>
     /// Parameter version of LeaderboardVersionEntry
     /// </summary>
+    [JsonPropertyName("version")]
     public LeaderboardVersion Version { get; }
 
     /// <summary>
     /// Parameter playerId of LeaderboardVersionEntry
     /// </summary>
+    [JsonPropertyName("playerId")]
     public string PlayerId { get; }
 
     /// <summary>
     /// Parameter playerName of LeaderboardVersionEntry
     /// </summary>
+    [JsonPropertyName("playerName")]
     public string PlayerName { get; }
 
     /// <summary>
     /// Parameter rank of LeaderboardVersionEntry
     /// </summary>
+    [JsonPropertyName("rank")]
     public int Rank { get; }
 
     /// <summary>
     /// Parameter score of LeaderboardVersionEntry
     /// </summary>
+    [JsonPropertyName("score")]
     public double Score { get; }
 }
 
@@ -367,16 +395,19 @@ public class LeaderboardVersion
     /// <summary>
     /// Parameter id of LeaderboardVersion
     /// </summary>
+    [JsonPropertyName("id")]
     public string Id { get; }
 
     /// <summary>
     /// Parameter start of LeaderboardVersion
     /// </summary>
+    [JsonPropertyName("start")]
     public DateTime Start { get; }
 
     /// <summary>
     /// Parameter end of LeaderboardVersion
     /// </summary>
+    [JsonPropertyName("end")]
     public DateTime End { get; }
 }
 
@@ -412,26 +443,31 @@ public class LeaderboardVersionScoresPage
     /// <summary>
     /// Parameter version of LeaderboardVersionScoresPage
     /// </summary>
+    [JsonPropertyName("version")]
     public LeaderboardVersion Version { get; }
 
     /// <summary>
     /// Parameter offset of LeaderboardVersionScoresPage
     /// </summary>
+    [JsonPropertyName("offset")]
     public int Offset { get; }
 
     /// <summary>
     /// Parameter limit of LeaderboardVersionScoresPage
     /// </summary>
+    [JsonPropertyName("limit")]
     public int Limit { get; }
 
     /// <summary>
     /// Parameter total of LeaderboardVersionScoresPage
     /// </summary>
+    [JsonPropertyName("total")]
     public int Total { get; }
 
     /// <summary>
     /// Parameter results of LeaderboardVersionScoresPage
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardEntry> Results { get; }
 }
 
@@ -469,31 +505,38 @@ public class LeaderboardVersionTierScoresPage
     /// <summary>
     /// Parameter version of LeaderboardVersionTierScoresPage
     /// </summary>
+    [JsonPropertyName("version")]
     public LeaderboardVersion Version { get; }
 
     /// <summary>
     /// Parameter tier of LeaderboardVersionTierScoresPage
     /// </summary>
+    [JsonPropertyName("tier")]
     public string Tier { get; }
 
     /// <summary>
     /// Parameter offset of LeaderboardVersionTierScoresPage
     /// </summary>
+    [JsonPropertyName("offset")]
     public int Offset { get; }
 
     /// <summary>
     /// Parameter limit of LeaderboardVersionTierScoresPage
     /// </summary>
+
+    [JsonPropertyName("limit")]
     public int Limit { get; }
 
     /// <summary>
     /// Parameter total of LeaderboardVersionTierScoresPage
     /// </summary>
+    [JsonPropertyName("total")]
     public int Total { get; }
 
     /// <summary>
     /// Parameter results of LeaderboardVersionTierScoresPage
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardEntry> Results { get; }
 }
 
@@ -528,25 +571,30 @@ public class LeaderboardVersions
     /// <summary>
     /// Parameter leaderboardId of LeaderboardVersions
     /// </summary>
+    [JsonPropertyName("leaderboardId")]
     public string LeaderboardId { get; }
 
     /// <summary>
     /// Parameter results of LeaderboardVersions
     /// </summary>
+    [JsonPropertyName("results")]
     public List<LeaderboardVersion> Results { get; }
 
     /// <summary>
     /// Parameter nextReset of LeaderboardVersions
     /// </summary>
+    [JsonPropertyName("nextReset")]
     public DateTime NextReset { get; }
 
     /// <summary>
     /// Parameter versionId of LeaderboardVersions
     /// </summary>
+    [JsonPropertyName("versionId")]
     public string VersionId { get; }
 
     /// <summary>
     /// Parameter totalArchivedVersions of LeaderboardVersions
     /// </summary>
+    [JsonPropertyName("totalArchivedVersions")]
     public int TotalArchivedVersions { get; }
 }

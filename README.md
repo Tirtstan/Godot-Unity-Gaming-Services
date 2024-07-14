@@ -1,16 +1,16 @@
 # Godot Unity Gaming Services
 
-Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot 4.2+** using C#. Not sure if I will continue creating and updating this project as I just wanted the ability to use Unity's User Generated Content in any project I make.
+Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot 4.2+** using C#.
 
 **This SDK is still under early development.**
 
-Use this as a jumping point to create a bigger, final version or contribute directly.
+Feel free to use this as a jumping point to create a bigger, final version or contribute directly.
 
 # Architecture
 
 Using the wonderful **[RestSharp](https://github.com/RestSharp/RestSharp)** to make this process a little easier.
 
-**NB: You must install the RestSharp package into your project for this plugin it work.**
+**NB: You must install the RestSharp package into your project for this plugin to function.**
 
 ```console
 dotnet add package RestSharp
@@ -22,12 +22,17 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 
 # Unity Gaming Services
 
+## Supported
+
+-   Authentication
+    -   Anonymous/Session
+    -   Username & Password
+-   Leaderboards
+
 ## Planned
 
 -   Authentication
-    -   JWT token validating (no idea)
-    -   Polish
--   Leaderboards
+    -   JWT token validating & refreshing (no idea)
 -   Cloud Save
 -   User Generated Content
 
