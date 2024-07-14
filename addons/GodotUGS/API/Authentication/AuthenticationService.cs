@@ -271,6 +271,11 @@ public partial class AuthenticationService : Node
         }
     }
 
+    /// <summary>
+    /// Switch the current profile.
+    /// You can use profiles to sign in to multiple accounts on a single device.
+    /// </summary>
+    /// <param name="profile">The profile to switch to.</param>
     public void SwitchProfile(string profileName)
     {
         if (string.IsNullOrEmpty(profileName))

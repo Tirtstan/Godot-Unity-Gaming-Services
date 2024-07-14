@@ -1,6 +1,6 @@
 namespace Unity.Services.Authentication.Models;
 
-public class UsernamePassword
+public class UsernameInfo
 {
     public string Username { get; set; } = "";
     public string CreatedAt { get; set; } = "";
