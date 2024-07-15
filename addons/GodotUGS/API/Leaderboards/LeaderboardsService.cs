@@ -24,6 +24,11 @@ public partial class LeaderboardsService : Node
 
     public override void _Ready()
     {
+        AuthenticationService.Instance.SignedIn += OnSignedIn;
+    }
+
+    private void OnSignedIn()
+    {
         var options = new RestClientOptions(LeaderboardsURL)
         {
             Authenticator = new JwtAuthenticator(AuthenticationService.Instance.AccessToken)
@@ -360,5 +365,10 @@ public partial class LeaderboardsService : Node
             return response.Data;
         else
             throw response.ErrorException;
+    }
+
+    public override void _ExitTree()
+    {
+        AuthenticationService.Instance.SignedIn -= OnSignedIn;
     }
 }
