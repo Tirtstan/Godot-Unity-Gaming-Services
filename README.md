@@ -1,6 +1,6 @@
 # Godot Unity Gaming Services
 
-Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot 4.2+** using C#.
+Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot Mono v4.0+** (All latest stables & 4.3 beta 3).
 
 **This SDK is still under early development.**
 
@@ -25,16 +25,16 @@ dotnet add package RestSharp
 **To use GodotUGS, you have to provide your game's project ID. Here's how you can:**
 
 -   In Your Browser:
-	-   Go to the [UGS Website](https://cloud.unity.com/home) and login or create an account.
-	-   At the top, choose a project or create one.
-	-   Go to the dashboard of the project (on the side).
-	-   Click on the Project settings button in the top right.
-	-   Copy the project ID.
+    -   Go to the [UGS Website](https://cloud.unity.com/home) and login or create an account.
+    -   At the top, choose a project or create one.
+    -   Go to the dashboard of the project (on the side).
+    -   Click on the Project settings button in the top right.
+    -   Copy the project ID.
 -   In Godot:
-	-   Locate the example APIResource in **"res://addons/GodotUGS/Resources/APIResource_Example.tres"**.
-	-   Fill in the project ID field.
-	-   Locate the GodotUGS autoload in **"res://addons/GodotUGS/Autoloads/GodotUGS.tscn"**.
-	-   In the UnityServices node, provide the APIResource.tres through the inspector.
+    -   Locate the example APIResource in **"res://addons/GodotUGS/Resources/APIResource_Example.tres"**.
+    -   Fill in the project ID field.
+    -   Locate the GodotUGS autoload in **"res://addons/GodotUGS/Autoloads/GodotUGS.tscn"**.
+    -   In the UnityServices node, provide the APIResource.tres through the inspector.
 
 Done!
 
@@ -43,14 +43,14 @@ Done!
 ## Supported
 
 -   Authentication
-	-   Anonymous/Session
-	-   Username & Password
+    -   Anonymous/Session
+    -   Username & Password
 -   Leaderboards
 
 ## Planned
 
 -   Authentication
-	-   JWT token validating & refreshing (no idea)
+    -   JWT token validating & refreshing (no idea)
 -   Cloud Save
 -   User Generated Content
 
