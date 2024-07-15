@@ -10,15 +10,34 @@ Feel free to use this as a jumping point to create a bigger, final version or co
 
 Using the wonderful **[RestSharp](https://github.com/RestSharp/RestSharp)** to make this process a little easier.
 
-**NB: You must install the RestSharp package into your project for this plugin to function.**
+I have tried to keep the implementation of the SDK as similar to Unity's version for their engine. I am very inexperienced with the making of REST API's so bare with me here (or fork/contribute!).
+
+Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.
+
+# Setup
+
+In your Godot project, install RestSharp.
 
 ```console
 dotnet add package RestSharp
 ```
 
-I have tried to keep the implementation of the SDK as similar to Unity's version for their engine. I am very inexperienced with the making of REST API's so bare with me here (or fork/contribute!).
+To use GodotUGS, you have to provide your game's project ID. Here's how you can:
 
-Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.
+-   In Your Browser:
+    -   Go to the [UGS Website](https://cloud.unity.com/home) and login or create an account.
+    -   At the top, choose a project or create one.
+    -   Go to the dashboard of the project (on the side).
+    -   Click on the Project settings button in the top right.
+    -   Copy the project ID.
+-   In Godot:
+    -   Locate the example APIResource in "res://addons/GodotUGS/Resources/APIResource.tres.example".
+    -   Remove the ".example" extension.
+    -   Fill in the project ID field.
+    -   Locate the GodotUGS autoload in "res://addons/GodotUGS/Autoloads/GodotUGS.tscn".
+    -   In the UnityServices node, provide the APIResource.tres through the inspector.
+
+Done!
 
 # Unity Gaming Services
 
