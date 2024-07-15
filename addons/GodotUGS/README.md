@@ -66,24 +66,24 @@ using Unity.Services.Core;
 
 public override async void _Ready()
 {
-	UnityServices.Instance.OnInitialize += OnInitialize;
+    UnityServices.Instance.OnInitialize += OnInitialize;
 
-	try
-	{
-		await UnityServices.Instance.InitializeAsync(); // required to do anything with UGS
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await UnityServices.Instance.InitializeAsync(); // required to do anything with UGS
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 
 private void OnInitialize(bool isInitialized)
 {
-	if (!isInitialized)
-		return;
+    if (!isInitialized)
+        return;
 
-	GD.Print("Unity Services Initialized!");
+    GD.Print("Unity Services Initialized!");
 }
 ```
 
@@ -95,17 +95,17 @@ using Unity.Services.Core;
 
 public override async void _Ready()
 {
-	var options = new InitializationOptions();
-	initializationOptions.SetEnvironmentName("experimental");
+    var options = new InitializationOptions();
+    initializationOptions.SetEnvironmentName("experimental");
 
-	try
-	{
-		await UnityServices.Instance.InitializeAsync(options);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await UnityServices.Instance.InitializeAsync(options);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
 
@@ -121,15 +121,15 @@ using Unity.Services.Authentication;
 // they are signed back in regardless of if they're an anonymous player or not.
 private async void SignInAnonymously()
 {
-	try
-	{
-		await AuthenticationService.Instance.SignInAnonymouslyAsync();
-		GD.Print("Signed in ID: " + AuthenticationService.Instance.PlayerId);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        GD.Print("Signed in ID: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
 
@@ -141,28 +141,28 @@ using Unity.Services.Authentication;
 
 private async void SignUp(string username, string password)
 {
-	try
-	{
-		await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
-		GD.Print("Signed up ID: " + AuthenticationService.Instance.PlayerId);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
+        GD.Print("Signed up ID: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 
 private async void SignIn(string username, string password)
 {
-	try
-	{
-		await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
-		GD.Print("Signed in ID: " + AuthenticationService.Instance.PlayerId);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
+        GD.Print("Signed in ID: " + AuthenticationService.Instance.PlayerId);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
 
@@ -176,15 +176,15 @@ using Unity.Services.Leaderboards;
 
 private async void AddPlayerScore(string leaderboardId, double score)
 {
-	try
-	{
-		await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardId, score);
-		GD.Print("Score added!");
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardId, score);
+        GD.Print("Score added!");
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
 
@@ -196,14 +196,14 @@ using Unity.Services.Leaderboards;
 
 private async void GetScores(string leaderboardId)
 {
-	try
-	{
-		var scores = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId);
-		GD.Print("Total Scores: " + scores.Total);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        var scores = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId);
+        GD.Print("Total Scores: " + scores.Total);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
