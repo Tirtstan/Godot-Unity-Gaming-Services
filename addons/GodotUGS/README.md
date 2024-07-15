@@ -16,13 +16,13 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 
 # Setup
 
-In your Godot project, install RestSharp.
+**In your Godot project, install RestSharp.**
 
 ```console
 dotnet add package RestSharp
 ```
 
-To use GodotUGS, you have to provide your game's project ID. Here's how you can:
+**To use GodotUGS, you have to provide your game's project ID. Here's how you can:**
 
 -   In Your Browser:
     -   Go to the [UGS Website](https://cloud.unity.com/home) and login or create an account.
@@ -31,10 +31,9 @@ To use GodotUGS, you have to provide your game's project ID. Here's how you can:
     -   Click on the Project settings button in the top right.
     -   Copy the project ID.
 -   In Godot:
-    -   Locate the example APIResource in "res://addons/GodotUGS/Resources/APIResource.tres.example".
-    -   Remove the ".example" extension.
+    -   Locate the example APIResource in **"res://addons/GodotUGS/Resources/APIResource_Example.tres"**.
     -   Fill in the project ID field.
-    -   Locate the GodotUGS autoload in "res://addons/GodotUGS/Autoloads/GodotUGS.tscn".
+    -   Locate the GodotUGS autoload in **"res://addons/GodotUGS/Autoloads/GodotUGS.tscn"**.
     -   In the UnityServices node, provide the APIResource.tres through the inspector.
 
 Done!

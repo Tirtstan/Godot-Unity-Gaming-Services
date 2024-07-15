@@ -21,7 +21,7 @@ public partial class GodotUGS : EditorPlugin
         );
         GD.PrintRich(
             "[b]Please set the API resource in 'res://addons/GodotUGS/Autoloads/GodotUGS.tscn'\n"
-                + "An example has been provided in 'res://addons/GodotUGS/Resources/APIResource.tres.example'"
+                + "An example has been provided in 'res://addons/GodotUGS/Resources/APIResource_Example.tres'"
         );
     }
 
