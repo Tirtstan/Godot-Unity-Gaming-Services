@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
+using RestSharp.Authenticators;
 using Unity.Services.Authentication.Models;
 using Unity.Services.Core;
 
@@ -15,18 +16,18 @@ public partial class AuthenticationService : Node
     public static AuthenticationService Instance { get; private set; }
     public event Action SignedIn;
     public event Action SignedOut;
-    public string AccessToken => UserSession.idToken;
-    public string PlayerId => UserSession.user.id;
-    public string PlayerName => UserSession.user.username;
+    public string AccessToken => UserSession.IdToken;
+    public string PlayerId => UserSession.User.Id;
+    public string PlayerName => UserSession.User.Username;
     public string Profile => currentProfile;
     public bool SessionTokenExists => !string.IsNullOrEmpty(SessionToken);
     public string LastNotificationDate =>
-        DateTime.UnixEpoch.AddMilliseconds(UserSession.lastNotificationDate).ToString();
+        DateTime.UnixEpoch.AddMilliseconds(UserSession.LastNotificationDate).ToString();
 
     private RestClient authClient;
     private ConfigFile config = new();
     private UserSession UserSession = new();
-    private string SessionToken => UserSession.sessionToken;
+    private string SessionToken => UserSession.SessionToken;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
     private const string Persistents = "Persistents";
@@ -84,8 +85,7 @@ public partial class AuthenticationService : Node
 
     private async Task SignInWithSessionToken(string sessionToken)
     {
-        string requestData = "{" + $@"""sessionToken"": ""{sessionToken}""" + "}";
-        var request = new RestRequest("/authentication/session-token", Method.Post).AddJsonBody(requestData);
+        var request = new RestRequest("/authentication/session-token", Method.Post).AddJsonBody(new { sessionToken });
 
         var response = await authClient.ExecuteAsync<UserSession>(request);
         if (response.IsSuccessful)
@@ -107,9 +107,9 @@ public partial class AuthenticationService : Node
     /// <param name="password">Password of the player. Note that it must contain 8-30 characters with at least 1 upper case, 1 lower case, 1 number, and 1 special character.</param>
     public async Task SignInWithUsernamePasswordAsync(string username, string password)
     {
-        string requestData = "{" + $@"""username"": ""{username}"", ""password"": ""{password}""" + "}";
-
-        var request = new RestRequest("/authentication/usernamepassword/sign-in", Method.Post).AddJsonBody(requestData);
+        var request = new RestRequest("/authentication/usernamepassword/sign-in", Method.Post).AddJsonBody(
+            new { username, password }
+        );
 
         var response = await authClient.ExecuteAsync<UserSession>(request);
         if (response.IsSuccessful)
@@ -131,8 +131,9 @@ public partial class AuthenticationService : Node
     /// <param name="password">Password of the player. Note that it must contain 8-30 characters with at least 1 upper case, 1 lower case, 1 number, and 1 special character.</param>
     public async Task SignUpWithUsernamePasswordAsync(string username, string password)
     {
-        string requestData = "{" + $@"""username"": ""{username}"", ""password"": ""{password}""" + "}";
-        var request = new RestRequest("/authentication/usernamepassword/sign-up", Method.Post).AddJsonBody(requestData);
+        var request = new RestRequest("/authentication/usernamepassword/sign-up", Method.Post).AddJsonBody(
+            new { username, password }
+        );
 
         var response = await authClient.ExecuteAsync<UserSession>(request);
         if (response.IsSuccessful)
@@ -157,10 +158,10 @@ public partial class AuthenticationService : Node
                 "User must be signed in an already existant account to add a username and password."
             );
 
-        string requestData = "{" + $@"""username"": ""{username}"", ""password"": ""{password}""" + "}";
-        var request = new RestRequest("/authentication/usernamepassword/sign-up", Method.Post)
-            .AddHeader("Authorization", $"Bearer {AccessToken}")
-            .AddJsonBody(requestData);
+        var request = new RestRequest("/authentication/usernamepassword/sign-up", Method.Post).AddJsonBody(
+            new { username, password }
+        );
+        request.Authenticator = new JwtAuthenticator(AccessToken);
 
         var response = await authClient.ExecuteAsync<UserSession>(request);
         if (response.IsSuccessful)
@@ -180,10 +181,10 @@ public partial class AuthenticationService : Node
     /// </summary>
     public async Task UpdatePasswordAsync(string currentPassword, string newPassword)
     {
-        string requestData = "{" + $@"""password"": ""{currentPassword}"", ""newPassword"": ""{newPassword}""" + "}";
-        var request = new RestRequest("/authentication/usernamepassword/update-password", Method.Post)
-            .AddHeader("Authorization", $"Bearer {AccessToken}")
-            .AddJsonBody(requestData);
+        var request = new RestRequest("/authentication/usernamepassword/update-password", Method.Post).AddJsonBody(
+            new { password = currentPassword, newPassword }
+        );
+        request.Authenticator = new JwtAuthenticator(AccessToken);
 
         var response = await authClient.ExecuteAsync<UserSession>(request);
         if (response.IsSuccessful)
@@ -203,11 +204,11 @@ public partial class AuthenticationService : Node
     /// </summary>
     public async Task DeleteAccountAsync()
     {
-        var request = new RestRequest($"/users/{PlayerId}", Method.Delete).AddHeader(
-            "Authorization",
-            $"Bearer {AccessToken}"
-        );
-        request.RequestFormat = DataFormat.Json;
+        var request = new RestRequest($"/users/{PlayerId}", Method.Delete)
+        {
+            Authenticator = new JwtAuthenticator(AccessToken),
+            RequestFormat = DataFormat.Json
+        };
 
         var response = await authClient.ExecuteAsync(request);
         if (!response.IsSuccessful)
@@ -232,6 +233,10 @@ public partial class AuthenticationService : Node
         SignedOut?.Invoke();
     }
 
+    /// <summary>
+    /// Returns the info of the logged in player, which includes the player's id, creation time and linked identities.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
     public async Task<PlayerInfo> GetPlayerInfoAsync()
     {
         var request = new RestRequest($"/users/{PlayerId}").AddHeader("Authorization", $"Bearer {AccessToken}");
@@ -239,8 +244,26 @@ public partial class AuthenticationService : Node
 
         var response = await authClient.ExecuteAsync<PlayerInfo>(request);
         if (response.IsSuccessful)
-        {
             return response.Data;
+        else
+            throw response.ErrorException;
+    }
+
+    /// <summary>
+    /// Retrieves the Notifications that were created for the signed in player
+    /// </summary>
+    public async Task<List<Notification>> GetNotificationsAsync()
+    {
+        var request = new RestRequest($"/users/{PlayerId}/notifications")
+        {
+            Authenticator = new JwtAuthenticator(AccessToken),
+            RequestFormat = DataFormat.Json
+        };
+
+        var response = await authClient.ExecuteAsync<NotificationList>(request);
+        if (response.IsSuccessful)
+        {
+            return response.Data.Notifications;
         }
         else
         {
@@ -249,27 +272,10 @@ public partial class AuthenticationService : Node
     }
 
     /// <summary>
-    /// Retrieves the Notifications that were created for the signed in player
+    /// Switch the current profile.
+    /// You can use profiles to sign in to multiple accounts on a single device.
     /// </summary>
-    public async Task<List<Notification>> GetNotificationsAsync()
-    {
-        var request = new RestRequest($"/users/{PlayerId}/notifications").AddHeader(
-            "Authorization",
-            $"Bearer {AccessToken}"
-        );
-        request.RequestFormat = DataFormat.Json;
-
-        var response = await authClient.ExecuteAsync<NotificationList>(request);
-        if (response.IsSuccessful)
-        {
-            return response.Data.notifications;
-        }
-        else
-        {
-            throw response.ErrorException;
-        }
-    }
-
+    /// <param name="profile">The profile to switch to.</param>
     public void SwitchProfile(string profileName)
     {
         if (string.IsNullOrEmpty(profileName))
@@ -280,6 +286,65 @@ public partial class AuthenticationService : Node
         SavePersistents();
         LoadCache();
     }
+
+    /// <summary>
+    /// Returns the name of the logged in player if it has been set.
+    /// If no name has been set, this will return null if autoGenerate is set to false.
+    /// </summary>
+    /// <param name="autoGenerate">Option auto generate a player name if none already exist. Defaults to true</param>
+    /// <returns>Task for the operation with the resulting player name</returns>
+    public async Task<string> GetPlayerNameAsync(bool autoGenerate = true)
+    {
+        var request = new RestRequest($"https://social.services.api.unity.com/v1/names/{PlayerId}").AddQueryParameter(
+            "autoGenerate",
+            autoGenerate
+        );
+        request.Authenticator = new JwtAuthenticator(AccessToken);
+        request.RequestFormat = DataFormat.Json;
+
+        var response = await authClient.ExecuteAsync<PlayerName>(request);
+        if (response.IsSuccessful)
+            return response.Data.Name;
+        else
+            throw response.ErrorException;
+    }
+
+    /// <summary>
+    /// Updates the player name of the logged in player.
+    /// </summary>
+    /// <param name="name">The new name for the player. It must not contain spaces.</param>
+    /// <returns>Task for the operation with the resulting player name</returns>
+    public async Task<string> UpdatePlayerNameAsync(string name)
+    {
+        var request = new RestRequest(
+            $"https://social.services.api.unity.com/v1/names/{PlayerId}",
+            Method.Post
+        ).AddJsonBody(new { name });
+        request.Authenticator = new JwtAuthenticator(AccessToken);
+
+        var response = await authClient.ExecuteAsync<PlayerName>(request);
+        if (response.IsSuccessful)
+            return response.Data.Name;
+        else
+            throw response.ErrorException;
+    }
+
+    // public async void ProcessAuthenticationTokens(string accessToken, string sessionToken = null)
+    // {
+    //     const string UnityServicesURL = "https://services.api.unity.com";
+    //     var request = new RestRequest() { Authenticator = new JwtAuthenticator(accessToken) };
+
+    //     var response = await new RestClient(UnityServicesURL).ExecuteAsync(request);
+    //     if (response.IsSuccessful)
+    //     {
+    //         GD.Print("All good, not expired.");
+    //     }
+    //     else
+    //     {
+    //         GD.PrintErr(response.Content);
+    //         throw response.ErrorException;
+    //     }
+    // }
 
     /// <summary>
     /// Deletes the session token if it exists.
@@ -321,8 +386,8 @@ public partial class AuthenticationService : Node
         {
             UserSession = new UserSession
             {
-                idToken = (string)config.GetValue(currentProfile, "idToken"),
-                sessionToken = (string)config.GetValue(currentProfile, "sessionToken")
+                IdToken = (string)config.GetValue(currentProfile, "idToken"),
+                SessionToken = (string)config.GetValue(currentProfile, "sessionToken")
             };
         }
     }

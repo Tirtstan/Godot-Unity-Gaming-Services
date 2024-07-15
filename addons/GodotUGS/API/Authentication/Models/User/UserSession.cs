@@ -1,14 +1,24 @@
 namespace Unity.Services.Authentication.Models;
 
+using System.Text.Json.Serialization;
+
 public class UserSession
 {
-    public int expiresIn { get; set; }
-    public string idToken { get; set; } = "";
-    public string sessionToken { get; set; } = "";
-    public double lastNotificationDate { get; set; }
-    public User user { get; set; } = new();
-    public string userId { get; set; } = "";
+    [JsonPropertyName("expiresIn")]
+    public int ExpiresIn { get; set; }
 
-    public override string ToString() =>
-        $"IdToken: {idToken}, SessionToken: {sessionToken}, UserId: {userId}, ExpiresIn: {expiresIn}, User: {user}";
+    [JsonPropertyName("idToken")]
+    public string IdToken { get; set; } = "";
+
+    [JsonPropertyName("sessionToken")]
+    public string SessionToken { get; set; } = "";
+
+    [JsonPropertyName("lastNotificationDate")]
+    public double LastNotificationDate { get; set; }
+
+    [JsonPropertyName("user")]
+    public User User { get; set; } = new();
+
+    [JsonPropertyName("userId")]
+    public string UserId { get; set; } = "";
 }

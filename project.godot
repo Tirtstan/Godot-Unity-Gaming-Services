@@ -18,6 +18,11 @@ config/icon="res://icon.svg"
 
 GodotUGS="*res://addons/GodotUGS/Autoloads/GodotUGS.tscn"
 
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
 [dotnet]
 
 project/assembly_name="Godot-Unity-Gaming-Services"

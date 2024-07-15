@@ -1,4 +1,6 @@
 #if TOOLS
+namespace GodotUGS;
+
 using Godot;
 
 [Tool]

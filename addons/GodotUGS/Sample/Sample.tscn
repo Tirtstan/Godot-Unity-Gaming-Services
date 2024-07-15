@@ -1,0 +1,131 @@
+[gd_scene load_steps=2 format=3 uid="uid://bl5obagt4dofy"]
+
+[ext_resource type="Script" path="res://addons/GodotUGS/Sample/Sample.cs" id="1_u0glj"]
+
+[node name="Sample" type="Node"]
+script = ExtResource("1_u0glj")
+
+[node name="InitializeButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -93.0
+offset_top = -337.0
+offset_right = 93.0
+offset_bottom = -306.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+text = "Initialize Unity Services"
+
+[node name="SignInButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -85.0
+offset_top = -295.0
+offset_right = 85.0
+offset_bottom = -264.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+disabled = true
+text = "Sign In Anonymously"
+
+[node name="PlayerInfoLabel" type="RichTextLabel" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -459.0
+offset_top = -248.0
+offset_right = 459.0
+offset_bottom = -132.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]Currently Not Signed In...[/center]"
+fit_content = true
+scroll_active = false
+
+[node name="LeaderboardIdInput" type="TextEdit" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.0
+offset_top = -143.0
+offset_right = 115.0
+offset_bottom = -97.0
+grow_horizontal = 2
+grow_vertical = 2
+placeholder_text = "Leaderboard ID (Required)"
+
+[node name="ScoreInput" type="TextEdit" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.0
+offset_top = -82.0
+offset_right = 115.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 2
+placeholder_text = "Score"
+
+[node name="AddScoreButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -85.0
+offset_top = -14.85
+offset_right = 85.0
+offset_bottom = 16.15
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+disabled = true
+text = "Add Score"
+
+[node name="GetScoresButton" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -85.0
+offset_top = 37.0
+offset_right = 85.0
+offset_bottom = 68.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+disabled = true
+text = "Get Scores"
+
+[node name="LeaderboardInfoLabel" type="RichTextLabel" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -182.0
+offset_top = 95.0
+offset_right = 182.0
+offset_bottom = 334.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]*Leaderboard Info*[/center]"
+fit_content = true
+scroll_active = false

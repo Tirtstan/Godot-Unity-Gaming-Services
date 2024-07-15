@@ -1,14 +1,33 @@
 namespace Unity.Services.Authentication;
 
+using System.Text.Json.Serialization;
+
 public struct Notification
 {
-    public string id { get; set; }
-    public string type { get; set; }
-    public string playerID { get; set; }
-    public string caseID { get; set; }
-    public string projectID { get; set; }
-    public string message { get; set; }
-    public string createdAt { get; set; }
-    public string updatedAt { get; set; }
-    public string deletedAt { get; set; }
+    [JsonPropertyName("id")]
+    public string Id { get; set; }
+
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
+
+    [JsonPropertyName("playerID")]
+    public string PlayerId { get; set; }
+
+    [JsonPropertyName("caseID")]
+    public string CaseId { get; set; }
+
+    [JsonPropertyName("projectID")]
+    public string ProjectId { get; set; }
+
+    [JsonPropertyName("message")]
+    public string Message { get; set; }
+
+    [JsonPropertyName("createdAt")]
+    public string CreatedAt { get; set; }
+
+    [JsonPropertyName("updatedAt")]
+    public string UpdatedAt { get; set; }
+
+    [JsonPropertyName("deletedAt")]
+    public string DeletedAt { get; set; }
 }
