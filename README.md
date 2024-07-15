@@ -158,15 +158,15 @@ using Unity.Services.Leaderboards;
 
 private async void AddPlayerScore(string leaderboardId, double score)
 {
-	try
-	{
-		await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardId, score);
-		GD.Print("Score added!");
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardId, score);
+        GD.Print("Score added!");
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
 
@@ -178,14 +178,14 @@ using Unity.Services.Leaderboards;
 
 private async void GetScores(string leaderboardId)
 {
-	try
-	{
-		var scores = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId);
-		GD.Print("Total Scores: " + scores.Total);
-	}
-	catch (System.Exception e)
-	{
-		GD.PrintErr(e);
-	}
+    try
+    {
+        var scores = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId);
+        GD.Print("Total Scores: " + scores.Total);
+    }
+    catch (System.Exception e)
+    {
+        GD.PrintErr(e);
+    }
 }
 ```
