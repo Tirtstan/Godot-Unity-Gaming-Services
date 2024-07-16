@@ -1,8 +1,6 @@
 # Godot Unity Gaming Services
 
-Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot Mono v4.0+** (All latest stables & 4.3 beta 3).
-
-**This SDK is still under early development.**
+Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot (C# Mono) v4.0+** (All latest stables & 4.3 beta 3).
 
 Feel free to use this as a jumping point to create a bigger, final version or contribute directly.
 
@@ -10,7 +8,7 @@ Feel free to use this as a jumping point to create a bigger, final version or co
 
 Using the wonderful **[RestSharp](https://github.com/RestSharp/RestSharp)** to make this process a little easier.
 
-I have tried to keep the implementation of the SDK as similar to Unity's version for their engine. I am very inexperienced with the making of REST API's so bare with me here (or fork/contribute!).
+I have tried to keep the implementation of the SDK as similar to Unity's version for their engine. I am inexperienced with the making of REST API's so bare with me here (or fork/contribute!).
 
 Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.
 
@@ -25,7 +23,7 @@ dotnet add package RestSharp
 **To use GodotUGS, you have to provide your game's project ID. Here's how you can:**
 
 -   In Your Browser:
-    -   Go to the [UGS Website](https://cloud.unity.com/home) and login or create an account.
+    -   Go to [Unity Gaming Services](https://cloud.unity.com/home) and login or create an account.
     -   At the top, choose a project or create one.
     -   Go to the dashboard of the project (on the side).
     -   Click on the Project settings button in the top right.
@@ -34,7 +32,7 @@ dotnet add package RestSharp
     -   Locate the example APIResource in **"res://addons/GodotUGS/Resources/APIResource_Example.tres"**.
     -   Fill in the project ID field.
     -   Locate the GodotUGS autoload in **"res://addons/GodotUGS/Autoloads/GodotUGS.tscn"**.
-    -   In the UnityServices node, provide the APIResource.tres through the inspector.
+    -   In the UnityServices node, provide the APIResource through the inspector.
 
 Done!
 
@@ -49,8 +47,6 @@ Done!
 
 ## Planned
 
--   Authentication
-    -   JWT token validating & refreshing (no idea)
 -   Cloud Save
 -   User Generated Content
 
