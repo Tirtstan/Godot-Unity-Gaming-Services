@@ -65,7 +65,7 @@ public partial class Sample : Node
             playerInfoLabel.AppendText($"[center]{playerInfo}[/center]");
             signInButton.Disabled = true;
         }
-        catch (Exception e)
+        catch (AuthenticationException e)
         {
             GD.PrintErr(e);
             signInButton.Disabled = false;
@@ -85,7 +85,7 @@ public partial class Sample : Node
                 await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardIdInput.Text, score);
                 GD.Print("Score added!");
             }
-            catch (Exception e)
+            catch (LeaderboardsException e)
             {
                 GD.PrintErr(e);
             }
@@ -122,7 +122,7 @@ public partial class Sample : Node
                 GD.Print("No scores found!");
             }
         }
-        catch (Exception e)
+        catch (LeaderboardsException e)
         {
             GD.PrintErr(e);
         }
