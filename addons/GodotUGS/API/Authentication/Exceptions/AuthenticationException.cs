@@ -1,24 +1,16 @@
 using System;
 using System.Text.Json;
+using Unity.Services.Core;
 
-namespace Unity.Services.Core;
+namespace Unity.Services.Authentication;
 
 /// <summary>
-/// A base exception type for failed requests.
+/// AuthenticationException represents a runtime exception from authentication.
 /// </summary>
-public class AuthenticationException : Exception
+public class AuthenticationException : CoreException
 {
-    public AuthenticationException(string content)
-    {
-        try
-        {
-            Content = JsonSerializer.Deserialize<AuthenticationContent>(content);
-        }
-        catch { }
-    }
-
     public AuthenticationException(string content, string message, Exception innerException)
-        : base(message, innerException)
+        : base(content, message, innerException)
     {
         try
         {
@@ -27,8 +19,5 @@ public class AuthenticationException : Exception
         catch { }
     }
 
-    public AuthenticationContent Content { get; }
-    public string Title => Content?.Title ?? "";
-    public int Status => Content?.Status ?? 0;
-    public string Detail => Content?.Detail ?? "";
+    public override AuthenticationContent Content { get; }
 }

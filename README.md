@@ -122,7 +122,7 @@ private async void SignInAnonymously()
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
         GD.Print("Signed in ID: " + AuthenticationService.Instance.PlayerId);
     }
-    catch (System.Exception e)
+    catch (AuthenticationException e)
     {
         GD.PrintErr(e);
     }
@@ -142,7 +142,7 @@ private async void SignUp(string username, string password)
         await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
         GD.Print("Signed up ID: " + AuthenticationService.Instance.PlayerId);
     }
-    catch (System.Exception e)
+    catch (AuthenticationException e)
     {
         GD.PrintErr(e);
     }
@@ -155,7 +155,7 @@ private async void SignIn(string username, string password)
         await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
         GD.Print("Signed in ID: " + AuthenticationService.Instance.PlayerId);
     }
-    catch (System.Exception e)
+    catch (AuthenticationException e)
     {
         GD.PrintErr(e);
     }
@@ -177,7 +177,7 @@ private async void AddPlayerScore(string leaderboardId, double score)
         await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardId, score);
         GD.Print("Score added!");
     }
-    catch (System.Exception e)
+    catch (LeaderboardsException e)
     {
         GD.PrintErr(e);
     }
@@ -197,7 +197,7 @@ private async void GetScores(string leaderboardId)
         var scores = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId);
         GD.Print("Total Scores: " + scores.Total);
     }
-    catch (System.Exception e)
+    catch (LeaderboardsException e)
     {
         GD.PrintErr(e);
     }

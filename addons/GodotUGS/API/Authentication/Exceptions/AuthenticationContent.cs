@@ -1,18 +1,10 @@
 using System.Text.Json.Serialization;
+using Unity.Services.Core;
 
-namespace Unity.Services.Core;
+namespace Unity.Services.Authentication;
 
-public class AuthenticationContent
+public class AuthenticationContent : CoreContent
 {
-    [JsonPropertyName("title")]
-    public string Title { get; set; }
-
-    [JsonPropertyName("status")]
-    public int Status { get; set; }
-
-    [JsonPropertyName("detail")]
-    public string Detail { get; set; }
-
     [JsonPropertyName("details")]
     public Detail[] Details { get; set; }
 }
