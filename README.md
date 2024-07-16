@@ -31,8 +31,8 @@ dotnet add package RestSharp
 -   In Godot:
     -   Locate the example APIResource in **"res://addons/GodotUGS/Resources/APIResource_Example.tres"**.
     -   Fill in the project ID field.
-    -   Locate the GodotUGS autoload in **"res://addons/GodotUGS/Autoloads/GodotUGS.tscn"**.
-    -   In the UnityServices node, provide the APIResource through the inspector.
+    -   Locate the GodotUGS autoload in **"res://addons/GodotUGS/Autoloads/GodotUGS.tscn"** and open it.
+    -   In the UnityServices node, provide the APIResource file through the inspector.
 
 Done!
 
