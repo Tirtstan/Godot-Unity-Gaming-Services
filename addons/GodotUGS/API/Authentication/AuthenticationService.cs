@@ -16,6 +16,7 @@ public partial class AuthenticationService : Node
     public static AuthenticationService Instance { get; private set; }
     public event Action SignedIn;
     public event Action SignedOut;
+    public bool IsSignedIn { get; private set; }
     public string AccessToken => UserSession.IdToken;
     public string PlayerId => UserSession.User.Id;
     public string PlayerName => UserSession.User.Username;
@@ -48,6 +49,9 @@ public partial class AuthenticationService : Node
 
         LoadPersistents();
         LoadCache();
+
+        SignedIn += () => IsSignedIn = true;
+        SignedOut += () => IsSignedIn = false;
     }
 
     /// <summary>
@@ -56,6 +60,8 @@ public partial class AuthenticationService : Node
     /// <remarks>
     /// If a player has signed in previously with a session token stored on the device, they are signed back in regardless of if they're an anonymous player or not.
     /// </remarks>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task SignInAnonymouslyAsync()
     {
         try
@@ -79,7 +85,7 @@ public partial class AuthenticationService : Node
         }
         else
         {
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
         }
     }
 
@@ -96,7 +102,7 @@ public partial class AuthenticationService : Node
         }
         else
         {
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
         }
     }
 
@@ -105,6 +111,8 @@ public partial class AuthenticationService : Node
     /// </summary>
     /// <param name="username">Username of the player. Note that it must be unique per project and contains 3-20 characters of alphanumeric and/or these special characters [. - @ _].</param>
     /// <param name="password">Password of the player. Note that it must contain 8-30 characters with at least 1 upper case, 1 lower case, 1 number, and 1 special character.</param>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task SignInWithUsernamePasswordAsync(string username, string password)
     {
         var request = new RestRequest("/authentication/usernamepassword/sign-in", Method.Post).AddJsonBody(
@@ -120,7 +128,7 @@ public partial class AuthenticationService : Node
         }
         else
         {
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
         }
     }
 
@@ -129,6 +137,8 @@ public partial class AuthenticationService : Node
     /// </summary>
     /// <param name="username">Username of the player. Note that it must be unique per project and contains 3-20 characters of alphanumeric and/or these special characters [. - @ _].</param>
     /// <param name="password">Password of the player. Note that it must contain 8-30 characters with at least 1 upper case, 1 lower case, 1 number, and 1 special character.</param>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task SignUpWithUsernamePasswordAsync(string username, string password)
     {
         var request = new RestRequest("/authentication/usernamepassword/sign-up", Method.Post).AddJsonBody(
@@ -144,13 +154,15 @@ public partial class AuthenticationService : Node
         }
         else
         {
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
         }
     }
 
     /// <summary>
     /// Sign up with a new Username/Password and add it to the current logged in user.
     /// </summary>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task AddUsernamePasswordAsync(string username, string password)
     {
         if (string.IsNullOrEmpty(AccessToken))
@@ -172,13 +184,15 @@ public partial class AuthenticationService : Node
         }
         else
         {
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
         }
     }
 
     /// <summary>
     /// Update Password credentials for username/password user.
     /// </summary>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task UpdatePasswordAsync(string currentPassword, string newPassword)
     {
         var request = new RestRequest("/authentication/usernamepassword/update-password", Method.Post).AddJsonBody(
@@ -195,13 +209,15 @@ public partial class AuthenticationService : Node
         }
         else
         {
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
         }
     }
 
     /// <summary>
     /// Deletes the currently signed in player permanently.
     /// </summary>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task DeleteAccountAsync()
     {
         var request = new RestRequest($"/users/{PlayerId}", Method.Delete)
@@ -221,6 +237,8 @@ public partial class AuthenticationService : Node
     /// Sign out the current player.
     /// </summary>
     /// <param name="clearCredentials">Option to clear the session token that enables logging in to the same account</param>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public void SignOut(bool clearCredentials = false)
     {
         if (clearCredentials)
@@ -237,6 +255,8 @@ public partial class AuthenticationService : Node
     /// Returns the info of the logged in player, which includes the player's id, creation time and linked identities.
     /// </summary>
     /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task<PlayerInfo> GetPlayerInfoAsync()
     {
         var request = new RestRequest($"/users/{PlayerId}").AddHeader("Authorization", $"Bearer {AccessToken}");
@@ -246,12 +266,14 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
             return response.Data;
         else
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
     /// <summary>
     /// Retrieves the Notifications that were created for the signed in player
     /// </summary>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task<List<Notification>> GetNotificationsAsync()
     {
         var request = new RestRequest($"/users/{PlayerId}/notifications")
@@ -267,7 +289,7 @@ public partial class AuthenticationService : Node
         }
         else
         {
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
         }
     }
 
@@ -293,6 +315,8 @@ public partial class AuthenticationService : Node
     /// </summary>
     /// <param name="autoGenerate">Option auto generate a player name if none already exist. Defaults to true</param>
     /// <returns>Task for the operation with the resulting player name</returns>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task<string> GetPlayerNameAsync(bool autoGenerate = true)
     {
         var request = new RestRequest($"https://social.services.api.unity.com/v1/names/{PlayerId}").AddQueryParameter(
@@ -306,7 +330,7 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
             return response.Data.Name;
         else
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
     /// <summary>
@@ -314,6 +338,8 @@ public partial class AuthenticationService : Node
     /// </summary>
     /// <param name="name">The new name for the player. It must not contain spaces.</param>
     /// <returns>Task for the operation with the resulting player name</returns>
+    /// <exception cref="AuthenticationException">
+    /// </exception>
     public async Task<string> UpdatePlayerNameAsync(string name)
     {
         var request = new RestRequest(
@@ -326,25 +352,8 @@ public partial class AuthenticationService : Node
         if (response.IsSuccessful)
             return response.Data.Name;
         else
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
-
-    // public async void ProcessAuthenticationTokens(string accessToken, string sessionToken = null)
-    // {
-    //     const string UnityServicesURL = "https://services.api.unity.com";
-    //     var request = new RestRequest() { Authenticator = new JwtAuthenticator(accessToken) };
-
-    //     var response = await new RestClient(UnityServicesURL).ExecuteAsync(request);
-    //     if (response.IsSuccessful)
-    //     {
-    //         GD.Print("All good, not expired.");
-    //     }
-    //     else
-    //     {
-    //         GD.PrintErr(response.Content);
-    //         throw response.ErrorException;
-    //     }
-    // }
 
     /// <summary>
     /// Deletes the session token if it exists.
