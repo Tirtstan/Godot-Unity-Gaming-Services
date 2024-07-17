@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Godot;
 using RestSharp;
 using RestSharp.Authenticators;
 using RestSharp.Serializers.Json;
 using Unity.Services.Authentication;
+using Unity.Services.CloudSave.Internal.Models;
 using Unity.Services.CloudSave.Models;
 using Unity.Services.CloudSave.Models.Data.Player;
 using Unity.Services.Core;
@@ -49,17 +51,18 @@ public class PlayerDataService
     /// <param name="options">Options to modify the behavior of the method, specifying AccessClass and PlayerId</param>
     /// <returns>A list of keys and their metadata as stored in the server for the logged in player.</returns>
     /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
-    public async Task<List<ItemKey>> ListAllKeysAsync(ListAllKeysOptions options)
+    /// <exception cref="InvalidOperationException">Thrown if request is unsuccessful. </exception>
+    public async Task<List<ItemKey>> ListAllKeysAsync(ListAllKeysOptions options = null)
     {
-        string access = options.AccessClassOptions.AccessClass switch
+        string access = options?.AccessClassOptions.AccessClass switch
         {
-            AccessClass.Default => "keys",
             AccessClass.Protected => "protected/keys",
             AccessClass.Public => "public/keys",
-            _
+            AccessClass.Private
                 => throw new InvalidOperationException(
                     "ListAllKeysAsync can only be called with Default, Protected or Public."
                 ),
+            _ => "keys",
         };
 
         var request = new RestRequest($"/projects/{ProjectId}/players/{PlayerId}/{access}")
@@ -82,14 +85,18 @@ public class PlayerDataService
     /// <param name="options">Options to modify the behavior of the method, specifying AccessClass and PlayerId</param>
     /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server including their write locks</returns>
     /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
-    public async Task<Dictionary<string, Item>> LoadAsync(ISet<string> keys, LoadOptions options)
+    /// <exception cref="InvalidOperationException">Thrown if request is unsuccessful. </exception>
+    public async Task<Dictionary<string, Item>> LoadAsync(ISet<string> keys, LoadOptions options = null)
     {
-        string access = options.AccessClassOptions.AccessClass switch
+        string access = options?.AccessClassOptions.AccessClass switch
         {
-            AccessClass.Default => "items",
             AccessClass.Protected => "protected/items",
             AccessClass.Public => "public/items",
-            _ => throw new InvalidOperationException("LoadAsync can only be called with Default, Protected or Public."),
+            AccessClass.Private
+                => throw new InvalidOperationException(
+                    "LoadAsync can only be called with Default, Protected or Public."
+                ),
+            _ => "items",
         };
 
         var request = new RestRequest($"/projects/{ProjectId}/players/{PlayerId}/{access}")
@@ -101,11 +108,19 @@ public class PlayerDataService
         foreach (string key in keyArray)
             request.AddQueryParameter("keys", key);
 
-        var response = await playerDataClient.ExecuteAsync<Dictionary<string, Item>>(request);
+        var response = await playerDataClient.ExecuteAsync<ItemBatch>(request);
         if (response.IsSuccessful)
-            return response.Data;
+        {
+            var dict = new Dictionary<string, Item>();
+            foreach (var internalItem in response.Data.Results)
+                dict.Add(internalItem.Key, new Item(internalItem));
+
+            return dict;
+        }
         else
+        {
             throw new CloudSaveException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
     }
 
     /// <summary>
@@ -115,17 +130,18 @@ public class PlayerDataService
     /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server including their write locks</returns>
     /// <returns>The dictionary of saved keys and the corresponding updated write lock</returns>
     /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
-    public async Task<Dictionary<string, Item>> LoadAllAsync(LoadAllOptions options)
+    /// <exception cref="InvalidOperationException">Thrown if request is unsuccessful. </exception>
+    public async Task<Dictionary<string, Item>> LoadAllAsync(LoadAllOptions options = null)
     {
-        string access = options.AccessClassOptions.AccessClass switch
+        string access = options?.AccessClassOptions.AccessClass switch
         {
-            AccessClass.Default => "items",
             AccessClass.Protected => "protected/items",
             AccessClass.Public => "public/items",
-            _
+            AccessClass.Private
                 => throw new InvalidOperationException(
                     "LoadAllAsync can only be called with Default, Protected or Public."
                 ),
+            _ => "items",
         };
 
         var request = new RestRequest($"/projects/{ProjectId}/players/{PlayerId}/{access}")
@@ -133,18 +149,26 @@ public class PlayerDataService
             RequestFormat = DataFormat.Json
         };
 
-        var response = await playerDataClient.ExecuteAsync<Dictionary<string, Item>>(request);
+        var response = await playerDataClient.ExecuteAsync<ItemBatch>(request);
         if (response.IsSuccessful)
-            return response.Data;
+        {
+            var dict = new Dictionary<string, Item>();
+            foreach (var internalItem in response.Data.Results)
+                dict.Add(internalItem.Key, new Item(internalItem));
+
+            return dict;
+        }
         else
+        {
             throw new CloudSaveException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
     }
 
     /// <summary>
     /// Upload one or more key-value pairs to the Cloud Save service, with optional write lock validation.
     /// If a write lock is provided on an item and it does not match with the existing write lock, will throw a conflict exception.
     /// If the write lock for an item is set to null, the write lock validation for that item will be skipped and any existing value
-    /// currently stored for that key will be overwritten.
+    /// currently stored for that key will be overwritten (Max 20 Items).
     /// Keys can only contain alphanumeric characters, dashes, and underscores and be up to a length of 255 characters.
     /// Throws a CloudSaveException with a reason code and explanation of what happened.
     /// <code>Dictionary</code> as a parameter ensures the uniqueness of given keys.
@@ -154,29 +178,39 @@ public class PlayerDataService
     /// <param name="options">Options to modify the behavior of the method, specifying AccessClass and PlayerId</param>
     /// <returns>The dictionary of saved keys and the corresponding updated write lock</returns>
     /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
-    public async Task<Dictionary<string, string>> SaveAsync(IDictionary<string, SaveItem> data, SaveOptions options)
+    /// <exception cref="InvalidOperationException">Thrown if request is unsuccessful. </exception>
+    public async Task SaveAsync(IDictionary<string, SaveItem> data, SaveOptions options = null)
     {
-        string access = options.AccessClassOptions.AccessClass switch
+        if (data == null || data.Count is 0 or > 20)
+            return;
+
+        string access = options?.AccessClassOptions.AccessClass switch
         {
-            AccessClass.Default => "item-batch",
             AccessClass.Public => "public/item-batch",
-            _ => throw new InvalidOperationException("SaveAsync can only be called with Default or Public."),
+            AccessClass.Protected
+            or AccessClass.Private
+                => throw new InvalidOperationException("SaveAsync can only be called with Default or Public."),
+            _ => "item-batch",
         };
 
+        var itemBodies = new List<SetItemBody>();
+        foreach (var item in data)
+            itemBodies.Add(new SetItemBody(item.Key, item.Value.Value, item.Value.WriteLock));
+
+        var items = new SetItemBatchBody(itemBodies);
+
         var request = new RestRequest($"/projects/{ProjectId}/players/{PlayerId}/{access}", Method.Post).AddJsonBody(
-            new { data }
+            items
         );
 
-        var response = await playerDataClient.ExecuteAsync<Dictionary<string, string>>(request);
-        if (response.IsSuccessful)
-            return response.Data;
-        else
+        var response = await playerDataClient.ExecuteAsync(request);
+        if (!response.IsSuccessful)
             throw new CloudSaveException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
     /// <summary>
     /// Upload one or more key-value pairs to the Cloud Save service without write lock validation, overwriting any values
-    /// that are currently stored under the given keys.
+    /// that are currently stored under the given keys (Max 20 Items).
     /// Key can only contain alphanumeric characters, dashes, and underscores and be up to a length of 255 characters.
     /// <code>Dictionary</code> as a parameter ensures the uniqueness of given keys.
     /// There is no client validation in place, which means the API can be called regardless if data is incorrect, invalid, and/or missing.
@@ -186,23 +220,33 @@ public class PlayerDataService
     /// <returns>The dictionary of saved keys and the corresponding updated write lock</returns>
     /// <returns>The dictionary of saved keys and the corresponding updated write lock</returns>
     /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
-    public async Task<Dictionary<string, string>> SaveAsync(IDictionary<string, object> data, SaveOptions options)
+    /// <exception cref="InvalidOperationException">Thrown if request is unsuccessful. </exception>
+    public async Task SaveAsync(IDictionary<string, object> data, SaveOptions options = null)
     {
-        string access = options.AccessClassOptions.AccessClass switch
+        if (data == null || data.Count is 0 or > 20)
+            return;
+
+        string access = options?.AccessClassOptions.AccessClass switch
         {
-            AccessClass.Default => "item-batch",
             AccessClass.Public => "public/item-batch",
-            _ => throw new InvalidOperationException("SaveAsync can only be called with Default or Public."),
+            AccessClass.Protected
+            or AccessClass.Private
+                => throw new InvalidOperationException("SaveAsync can only be called with Default or Public."),
+            _ => "item-batch",
         };
 
+        var itemBodies = new List<SetItemBody>();
+        foreach (var item in data)
+            itemBodies.Add(new SetItemBody(item.Key, item.Value, null));
+
+        var items = new SetItemBatchBody(itemBodies);
+
         var request = new RestRequest($"/projects/{ProjectId}/players/{PlayerId}/{access}", Method.Post).AddJsonBody(
-            new { data }
+            items
         );
 
-        var response = await playerDataClient.ExecuteAsync<Dictionary<string, string>>(request);
-        if (response.IsSuccessful)
-            return response.Data;
-        else
+        var response = await playerDataClient.ExecuteAsync(request);
+        if (!response.IsSuccessful)
             throw new CloudSaveException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
@@ -215,13 +259,16 @@ public class PlayerDataService
     /// <param name="options">The optional options object for specifying the write lock to check conflict in the server, as well as AccessClass</param>
     /// <returns>The dictionary of saved keys and the corresponding updated write lock</returns>
     /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
-    public async Task DeleteAsync(string key, DeleteOptions options)
+    /// <exception cref="InvalidOperationException">Thrown if request is unsuccessful. </exception>
+    public async Task DeleteAsync(string key, DeleteOptions options = null)
     {
-        string access = options.AccessClassOptions.AccessClass switch
+        string access = options?.AccessClassOptions.AccessClass switch
         {
-            AccessClass.Default => "items",
             AccessClass.Public => "public/items",
-            _ => throw new InvalidOperationException("DeleteAsync can only be called with Default or Public."),
+            AccessClass.Protected
+            or AccessClass.Private
+                => throw new InvalidOperationException("DeleteAsync can only be called with Default or Public."),
+            _ => "items",
         };
 
         var request = new RestRequest($"/projects/{ProjectId}/players/{PlayerId}/{access}/{key}", Method.Delete)
@@ -240,13 +287,16 @@ public class PlayerDataService
     /// <param name="options">Options to modify the behavior of the method, specifying AccessClass and PlayerId</param>
     /// <returns>The dictionary of saved keys and the corresponding updated write lock</returns>
     /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
-    public async Task DeleteAllAsync(DeleteAllOptions options)
+    /// <exception cref="InvalidOperationException">Thrown if request is unsuccessful. </exception>
+    public async Task DeleteAllAsync(DeleteAllOptions options = null)
     {
-        string access = options.AccessClassOptions.AccessClass switch
+        string access = options?.AccessClassOptions.AccessClass switch
         {
-            AccessClass.Default => "items",
             AccessClass.Public => "public/items",
-            _ => throw new InvalidOperationException("DeleteAllAsync can only be called with Default or Public."),
+            AccessClass.Protected
+            or AccessClass.Private
+                => throw new InvalidOperationException("DeleteAllAsync can only be called with Default or Public."),
+            _ => "items",
         };
 
         var request = new RestRequest($"/projects/{ProjectId}/players/{PlayerId}/{access}", Method.Delete)
@@ -266,7 +316,8 @@ public class PlayerDataService
     /// <param name="options">Options to modify the behavior of the method, specifying AccessClass</param>
     /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server including their write locks</returns>
     /// <returns>The dictionary of saved keys and the corresponding updated write lock</returns>
-    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
+    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful. </exception>
+    /// <exception cref="InvalidOperationException">Thrown if request is unsuccessful. </exception>
     public async Task<List<EntityData>> QueryAsync(Query query, QueryOptions options)
     {
         string access = options.AccessClassOptions.AccessClass switch

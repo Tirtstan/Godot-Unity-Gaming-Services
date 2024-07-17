@@ -2,12 +2,13 @@ namespace Unity.Services.CloudSave.Internal.Models;
 
 // sourced from Unity
 
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 /// <summary>
 /// Response type for a Data Item stored in the Cloud Save service.
 /// </summary>
-public class Item
+public class InternalItem
 {
     /// <summary>
     /// Response type for a Data Item stored in the Cloud Save service.
@@ -17,7 +18,7 @@ public class Item
     /// <param name="writeLock">Enforces conflict checking when updating an existing data item. This field should be omitted when creating a new data item. When updating an existing item, omitting this field ignores write conflicts. When present, an error response will be returned if the writeLock in the request does not match the stored writeLock.</param>
     /// <param name="modified">modified param</param>
     /// <param name="created">created param</param>
-    public Item(string key, object value, string writeLock, ModifiedMetadata modified, ModifiedMetadata created)
+    public InternalItem(string key, object value, string writeLock, ModifiedMetadata modified, ModifiedMetadata created)
     {
         Key = key;
         Value = value;
@@ -55,4 +56,15 @@ public class Item
     /// </summary>
     [JsonPropertyName("created")]
     public ModifiedMetadata Created { get; }
+}
+
+public class ItemBatch
+{
+    public ItemBatch(List<InternalItem> results = default)
+    {
+        Results = results;
+    }
+
+    [JsonPropertyName("results")]
+    public List<InternalItem> Results { get; }
 }
