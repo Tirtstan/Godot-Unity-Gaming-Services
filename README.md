@@ -1,6 +1,6 @@
 # Godot Unity Gaming Services
 
-Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot (C# Mono) v4.0+** (All latest stables & 4.3 beta 3).
+Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot 4+ (C# Mono)** (All latest stables & 4.3 beta 3).
 
 Feel free to use this as a jumping point to create a bigger, final version or contribute directly.
 
@@ -8,7 +8,7 @@ Feel free to use this as a jumping point to create a bigger, final version or co
 
 Using the wonderful **[RestSharp](https://github.com/RestSharp/RestSharp)** to make this process a little easier.
 
-I have tried to keep the implementation of the SDK as similar to Unity's version for their engine. I am inexperienced with the making of REST API's so bare with me here (or fork/contribute!).
+I have tried to keep the implementation of the SDK as similar to Unity's version for their engine as I can. I am inexperienced with using REST API's so bare with me here (or fork/contribute!).
 
 Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.
 
@@ -23,7 +23,7 @@ dotnet add package RestSharp
 **To use GodotUGS, you have to provide your game's project ID. Here's how you can:**
 
 -   In Your Browser:
-    -   Go to [Unity Gaming Services](https://cloud.unity.com/home) and login or create an account.
+    -   Go to **[Unity Gaming Services](https://cloud.unity.com/home)** and login or create an account.
     -   At the top, choose a project or create one.
     -   Go to the dashboard of the project (on the side).
     -   Click on the Project settings button in the top right.
@@ -44,13 +44,30 @@ Done!
     -   Anonymous/Session
     -   Username & Password
 -   Leaderboards
+-   Cloud Save
 
 ## Planned
 
--   Cloud Save
+-   Economy
+-   Friends
 -   User Generated Content
 
 # Services
+
+## Examples
+
+-   **[Initialization](#initialization)**
+    -   [Default](#default)
+    -   [Environment](#custom-environment)
+-   **[Authentication](#authentication)**
+    -   [Anonymous](#anonymous--session-sign-in)
+    -   [Username & Password](#username--password)
+-   **[Leaderboards](#leaderboards)**
+    -   [Adding A Score](#adding-a-score)
+    -   [Getting Scores](#getting-scores)
+-   **[Cloud Save](#cloud-save)**
+    -   [Saving Items](#saving-items)
+    -   [Loading Items](#loading-items)
 
 ## Initialization
 
@@ -198,6 +215,67 @@ private async void GetScores(string leaderboardId)
         GD.Print("Total Scores: " + scores.Total);
     }
     catch (LeaderboardsException e)
+    {
+        GD.PrintErr(e);
+    }
+}
+```
+
+## Cloud Save
+
+### Saving Items
+
+```csharp
+using Godot;
+using Unity.Services.CloudSave;
+
+private async void SaveItem()
+{
+    try
+    {
+        await CloudSaveService.Instance.Data.Player.SaveAsync(
+            new Dictionary<string, object>()
+            {
+                { "coins", 1000 },
+                { "gems", 100 },
+                {
+                    "items",
+                    new List<Item>
+                    {
+                        new Item(1, "Sword", "A sharp sword", 10.5f),
+                        new Item(2, "Shield", "A strong shield", 15.5f)
+                    }
+                }
+            }
+        );
+    }
+    catch (CloudSaveException e)
+    {
+        GD.PrintErr(e);
+    }
+}
+```
+
+### Loading Items
+
+```csharp
+using Godot;
+using Unity.Services.CloudSave;
+
+private async void LoadItem()
+{
+    try
+    {
+        var data = await CloudSaveService.Instance.Data.Player.LoadAllAsync();
+        foreach (var pair in data)
+        {
+            GD.Print(pair.Key + ": " + pair.Value);
+
+            if (pair.Value.TryGetValueAs(out Item item))
+                GD.Print(item.Description);
+        }
+    }
+    catch (CloudSaveException e)
     {
         GD.PrintErr(e);
     }

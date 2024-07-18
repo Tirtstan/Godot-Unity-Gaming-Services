@@ -1,6 +1,8 @@
 namespace Unity.Services.CloudSave.Models;
 
 using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 public class ItemKey
 {
@@ -31,4 +33,22 @@ public class ItemKey
     /// The date time when the value was last modified
     /// </summary>
     public DateTime? Modified { get; }
+}
+
+/// <summary>
+/// Wrapper class for a list of ItemKey objects.
+/// </summary>
+public class ItemKeyList
+{
+    [JsonPropertyName("results")]
+    public List<ItemKey> Results { get; set; }
+
+    [JsonPropertyName("links")]
+    public Link Links { get; set; }
+}
+
+public class Link
+{
+    [JsonPropertyName("next")]
+    public string Next { get; set; }
 }

@@ -3,13 +3,14 @@ namespace Unity.Services.CloudSave.Models;
 // sourced from Unity
 
 using System;
+using System.Text.Json;
 
 public class Item
 {
     /// <summary>
     /// Response type for a Data Item stored in the Cloud Save service.
     /// </summary>
-    internal Item(Internal.Models.Item item)
+    internal Item(Internal.Models.InternalItem item)
     {
         Key = item.Key;
         Value = item.Value;
@@ -34,12 +35,25 @@ public class Item
     public string WriteLock { get; }
 
     /// <summary>
-    /// The datetime when the value was last modified
+    /// The date time when the value was last modified
     /// </summary>
     public DateTime? Modified { get; }
 
     /// <summary>
-    /// The datetime when the value was initially created
+    /// The date time when the value was initially created
     /// </summary>
     public DateTime? Created { get; }
+
+    public bool TryGetValueAs<T>(out T value)
+    {
+        try
+        {
+            value = JsonSerializer.Deserialize<T>(Value.ToString());
+            return true;
+        }
+        catch { }
+
+        value = default;
+        return false;
+    }
 }
