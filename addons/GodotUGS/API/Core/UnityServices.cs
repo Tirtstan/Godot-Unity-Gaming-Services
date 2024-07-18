@@ -1,11 +1,12 @@
+namespace Unity.Services.Core;
+
 // References: https://services.docs.unity.com/docs/service-account-auth/ && https://restsharp.dev/docs/usage/basics
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
-
-namespace Unity.Services.Core;
 
 public partial class UnityServices : Node
 {
@@ -13,13 +14,15 @@ public partial class UnityServices : Node
     public string Environment => initializationOptions.Environment;
     public string ProjectId => apiResource.ProjectId;
     public event Action<bool> OnInitialize;
+    public Dictionary<string, string> DefaultHeaders =>
+        new() { { "ProjectId", ProjectId }, { "UnityEnvironment", Environment } };
 
+    private RestClient restClient;
     private const string UnityServicesURL = "https://services.api.unity.com";
     private InitializationOptions initializationOptions = new();
 
     [Export(PropertyHint.ResourceType)]
     private APIResource apiResource;
-    private RestClient restClient;
 
     public override void _EnterTree() => Instance = this;
 
@@ -36,8 +39,7 @@ public partial class UnityServices : Node
         }
         else if (string.IsNullOrEmpty(apiResource.ProjectId))
         {
-            GD.PrintErr("Project ID is not set!");
-            return;
+            throw new NullReferenceException("Project ID is not set!");
         }
 
         if (options != null)

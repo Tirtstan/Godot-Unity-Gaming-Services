@@ -38,13 +38,7 @@ public partial class LeaderboardsService : Node
             configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
         );
 
-        leaderboardsClient.AddDefaultHeaders(
-            new Dictionary<string, string>
-            {
-                { "ProjectId", UnityServices.Instance.ProjectId },
-                { "UnityEnvironment", UnityServices.Instance.Environment }
-            }
-        );
+        leaderboardsClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
     }
 
     /// <summary>

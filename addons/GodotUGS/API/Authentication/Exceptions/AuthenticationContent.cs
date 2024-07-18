@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Unity.Services.Core;
 
-namespace Unity.Services.Authentication;
+namespace Unity.Services.Authentication.Models;
 
 public class AuthenticationContent : CoreContent
 {

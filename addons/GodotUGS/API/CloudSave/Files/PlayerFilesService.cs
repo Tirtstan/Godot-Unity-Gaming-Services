@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Godot;
 using RestSharp;
 using RestSharp.Authenticators;
 using RestSharp.Serializers.Json;
@@ -35,13 +34,7 @@ public class PlayerFilesService
             configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
         );
 
-        playerFilesClient.AddDefaultHeaders(
-            new Dictionary<string, string>
-            {
-                { "ProjectId", ProjectId },
-                { "UnityEnvironment", UnityServices.Instance.Environment }
-            }
-        );
+        playerFilesClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
     }
 
     /// <summary>
