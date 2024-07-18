@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://ddplf011y54gu"]
+[gd_scene load_steps=7 format=3 uid="uid://ddplf011y54gu"]
 
 [ext_resource type="Script" path="res://addons/GodotUGS/API/Core/UnityServices.cs" id="1_4tj83"]
 [ext_resource type="Resource" uid="uid://bshex3xqk7d4y" path="res://DontShip/APIResource.tres" id="2_uy88d"]
 [ext_resource type="Script" path="res://addons/GodotUGS/API/Authentication/AuthenticationService.cs" id="3_g63vc"]
 [ext_resource type="Script" path="res://addons/GodotUGS/API/Leaderboards/LeaderboardsService.cs" id="4_gb060"]
 [ext_resource type="Script" path="res://addons/GodotUGS/API/CloudSave/CloudSaveService.cs" id="5_jkf6u"]
+[ext_resource type="Script" path="res://addons/GodotUGS/API/Economy/EconomyService.cs" id="6_q0ot7"]
 
 [node name="Unity" type="Node"]
 
@@ -20,3 +21,6 @@ script = ExtResource("4_gb060")
 
 [node name="CloudSave" type="Node" parent="."]
 script = ExtResource("5_jkf6u")
+
+[node name="Economy" type="Node" parent="."]
+script = ExtResource("6_q0ot7")

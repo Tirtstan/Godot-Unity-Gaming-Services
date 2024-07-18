@@ -1,3 +1,5 @@
+namespace Unity.Services.Authentication;
+
 // References: https://services.docs.unity.com/docs/client-auth && https://restsharp.dev/docs/usage/basics
 
 using System;
@@ -8,8 +10,6 @@ using RestSharp;
 using RestSharp.Authenticators;
 using Unity.Services.Authentication.Models;
 using Unity.Services.Core;
-
-namespace Unity.Services.Authentication;
 
 public partial class AuthenticationService : Node
 {
@@ -39,13 +39,7 @@ public partial class AuthenticationService : Node
     public override void _Ready()
     {
         authClient = new RestClient(AuthURL);
-        authClient.AddDefaultHeaders(
-            new Dictionary<string, string>
-            {
-                { "ProjectId", UnityServices.Instance.ProjectId },
-                { "UnityEnvironment", UnityServices.Instance.Environment }
-            }
-        );
+        authClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
 
         LoadPersistents();
         LoadCache();
@@ -364,7 +358,11 @@ public partial class AuthenticationService : Node
         if (error != Error.Ok)
             return;
 
-        config.EraseSectionKey(currentProfile, "sessionToken");
+        try
+        {
+            config.EraseSectionKey(currentProfile, "sessionToken");
+        }
+        catch { }
     }
 
     private void ClearAccessToken()
@@ -373,7 +371,11 @@ public partial class AuthenticationService : Node
         if (error != Error.Ok)
             return;
 
-        config.EraseSectionKey(currentProfile, "idToken");
+        try
+        {
+            config.EraseSectionKey(currentProfile, "idToken");
+        }
+        catch { }
     }
 
     private void SaveCache()

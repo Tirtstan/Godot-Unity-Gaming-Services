@@ -1,8 +1,9 @@
+namespace Unity.Services.Authentication;
+
 using System;
 using System.Text.Json;
+using Unity.Services.Authentication.Models;
 using Unity.Services.Core;
-
-namespace Unity.Services.Authentication;
 
 /// <summary>
 /// AuthenticationException represents a runtime exception from authentication.

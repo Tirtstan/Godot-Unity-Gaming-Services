@@ -35,13 +35,7 @@ public class CustomDataService
             configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
         );
 
-        customDataClient.AddDefaultHeaders(
-            new Dictionary<string, string>
-            {
-                { "ProjectId", ProjectId },
-                { "UnityEnvironment", UnityServices.Instance.Environment }
-            }
-        );
+        customDataClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
     }
 
     /// <summary>

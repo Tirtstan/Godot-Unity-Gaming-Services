@@ -11,8 +11,9 @@ config_version=5
 [application]
 
 config/name="Godot Unity Gaming Services"
+run/main_scene="res://addons/GodotUGS/Sample/Sample.tscn"
 config/features=PackedStringArray("4.2", "C#", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://icon.jpg"
 
 [autoload]
 
