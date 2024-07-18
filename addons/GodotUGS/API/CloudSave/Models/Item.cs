@@ -44,5 +44,16 @@ public class Item
     /// </summary>
     public DateTime? Created { get; }
 
-    public T GetValueAs<T>() => JsonSerializer.Deserialize<T>(Value.ToString());
+    public bool TryGetValueAs<T>(out T value)
+    {
+        try
+        {
+            value = JsonSerializer.Deserialize<T>(Value.ToString());
+            return true;
+        }
+        catch { }
+
+        value = default;
+        return false;
+    }
 }
