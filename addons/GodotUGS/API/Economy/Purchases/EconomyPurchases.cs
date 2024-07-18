@@ -2,8 +2,8 @@ namespace Unity.Services.Economy;
 
 public class EconomyPurchases
 {
-    public string ProjectId { get; private set; }
-    public string PlayerId { get; private set; }
+    private string ProjectId { get; }
+    private string PlayerId { get; }
 
     public EconomyPurchases(string projectId, string playerId)
     {

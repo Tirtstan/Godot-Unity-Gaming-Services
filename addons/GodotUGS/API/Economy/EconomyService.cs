@@ -1,12 +1,19 @@
 namespace Unity.Services.Economy;
 
+using System;
 using Godot;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 
 public partial class EconomyService : Node
 {
-    public static EconomyService Instance { get; private set; }
+    private static EconomyService instance;
+    public static EconomyService Instance
+    {
+        get { throw new NotImplementedException("Economy Service is not ready."); }
+        private set => instance = value;
+    }
+
     public EconomyConfiguration Configuration { get; private set; }
     public EconomyPlayerBalances PlayerBalances { get; private set; }
     public EconomyPlayerInventory PlayerInventory { get; private set; }

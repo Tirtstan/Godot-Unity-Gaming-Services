@@ -1,6 +1,7 @@
 namespace Unity.Services.Economy.Models;
 
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 /// <summary>
@@ -50,4 +51,13 @@ public class EconomyDate
 {
     [JsonPropertyName("date")]
     public DateTime Date;
+}
+
+public class ConfigurationItemDefinitionList
+{
+    [JsonPropertyName("metadata")]
+    public Metadata Metadata;
+
+    [JsonPropertyName("results")]
+    public List<ConfigurationItemDefinition> Results;
 }
