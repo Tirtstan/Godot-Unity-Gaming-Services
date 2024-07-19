@@ -1,4 +1,4 @@
-namespace Unity.Services.CloudSave.Exceptions;
+namespace Unity.Services.CloudSave.Models;
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;

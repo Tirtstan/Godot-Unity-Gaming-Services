@@ -1,7 +1,8 @@
-namespace Unity.Services.CloudSave.Exceptions;
+namespace Unity.Services.CloudSave;
 
 using System;
 using System.Text.Json;
+using Unity.Services.CloudSave.Models;
 using Unity.Services.Core;
 
 public class CloudSaveException : CoreException
