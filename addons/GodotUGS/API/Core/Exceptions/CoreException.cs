@@ -1,6 +1,7 @@
-using System;
-
 namespace Unity.Services.Core;
+
+using System;
+using Unity.Services.Core.Models;
 
 public abstract class CoreException : Exception
 {

@@ -1,8 +1,8 @@
+namespace Unity.Services.Leaderboards;
+
 using System;
 using System.Text.Json;
 using Unity.Services.Core;
-
-namespace Unity.Services.Leaderboards;
 
 /// <summary>
 /// LeaderboardsException represents a runtime exception from Leaderboards.

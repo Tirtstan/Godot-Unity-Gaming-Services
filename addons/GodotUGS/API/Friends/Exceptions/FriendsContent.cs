@@ -1,9 +1,9 @@
-namespace Unity.Services.Leaderboards;
+namespace Unity.Services.Friends.Models;
 
 using System.Text.Json.Serialization;
 using Unity.Services.Core.Models;
 
-public class LeaderboardsContent : CoreContent
+public class FriendsContent : CoreContent
 {
     [JsonPropertyName("type")]
     public string Type { get; set; }
@@ -11,6 +11,6 @@ public class LeaderboardsContent : CoreContent
     [JsonPropertyName("code")]
     public int Code { get; set; }
 
-    [JsonPropertyName("instance")]
-    public string Instance { get; set; }
+    [JsonPropertyName("requestID")]
+    public string RequestId { get; set; }
 }
