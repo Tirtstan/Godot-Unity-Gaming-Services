@@ -11,13 +11,14 @@ public class RelationshipList
     public string Id { get; set; }
 
     [JsonPropertyName("created")]
-    public DateTime Created { get; set; }
+    public DateTime? Created { get; set; }
 
     [JsonPropertyName("expires")]
-    public DateTime Expires { get; set; }
+    public DateTime? Expires { get; set; }
 
+    /// <see cref="RelationshipType"/>
     [JsonPropertyName("type")]
-    public RelationshipType Type { get; set; }
+    public string Type { get; set; }
 
     [JsonPropertyName("members")]
     public List<Member> Members { get; set; }

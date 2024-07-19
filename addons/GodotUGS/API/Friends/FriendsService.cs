@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
@@ -203,7 +204,7 @@ public partial class FriendsService : Node
     public async Task<Relationship> AddBlockAsync(string memberId) =>
         await AddRelationshipAsync(memberId, RelationshipType.Block);
 
-    private async Task<Relationship> AddRelationshipAsync(string memberId, RelationshipType type)
+    private async Task<Relationship> AddRelationshipAsync(string memberId, string type)
     {
         Validate();
 
@@ -365,19 +366,15 @@ public partial class FriendsService : Node
         Validate();
 
         var request = new RestRequest("/relationships") { RequestFormat = DataFormat.Json }
-            .AddQueryParameter("limit", paginationOptions?.Limit ?? 25)
+            .AddQueryParameter("limit", paginationOptions?.Limit ?? 50)
             .AddQueryParameter("offset", paginationOptions?.Offset ?? 0)
             .AddQueryParameter("withPresence", initializeOptions.MemberOptions.IncludePresence)
             .AddQueryParameter("withProfile", initializeOptions.MemberOptions.IncludeProfile);
 
-        var response = await friendsClient.ExecuteAsync<RelationshipList>(request);
+        var response = await friendsClient.ExecuteAsync<List<RelationshipList>>(request);
         if (response.IsSuccessful)
         {
-            var relationships = response.Data.Members.ConvertAll(member => new Relationship(
-                response.Data.Id,
-                response.Data.Type,
-                member
-            ));
+            var relationships = response.Data.ConvertAll(r => new Relationship(r.Id, r.Type, r.Members[0]));
             this.relationships = relationships;
             return relationships;
         }
@@ -390,13 +387,13 @@ public partial class FriendsService : Node
     /// <summary>
     /// Sets the presence for the user.
     /// </summary>
-    /// <param name="availabilityOption">The type of availability to be set for the user's presence.</param>
+    /// <param name="availabilityOption">The type of <see cref="Availability"/> to be set for the user's presence.</param>
     /// <param name="activity">The activity value to be set for the user's presence.</param>
     /// <typeparam name="T"></typeparam>
     /// <exception cref="ArgumentException">Represents an error that occurs when an argument is incorrectly setup.</exception>
     /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="InvalidOperationException">Represents an error that occurs when the service has not been initialized.</exception>
-    public async Task SetPresenceAsync<T>(Availability availabilityOption, T activity)
+    public async Task SetPresenceAsync<T>(string availabilityOption, T activity)
         where T : new()
     {
         Validate();
@@ -417,14 +414,14 @@ public partial class FriendsService : Node
     /// <exception cref="ArgumentException">Represents an error that occurs when an argument is incorrectly setup.</exception>
     /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="InvalidOperationException">Represents an error that occurs when the service has not been initialized.</exception>
-    public async Task<Presence> GetPresenceAsync(string userId)
+    public async Task<Presence> GetPresenceAsync(string playerId)
     {
         Validate();
 
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrEmpty(playerId))
             throw new ArgumentException("User ID cannot be null or empty.");
 
-        var request = new RestRequest($"/presence/{userId}") { RequestFormat = DataFormat.Json };
+        var request = new RestRequest($"/presence/{playerId}") { RequestFormat = DataFormat.Json };
 
         var response = await friendsClient.ExecuteAsync<InternalPresence>(request);
         if (response.IsSuccessful)

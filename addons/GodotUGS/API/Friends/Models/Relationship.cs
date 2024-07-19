@@ -1,6 +1,6 @@
-namespace Unity.Services.Friends.Models;
-
 using System.Text.Json.Serialization;
+
+namespace Unity.Services.Friends.Models;
 
 /// <summary>
 /// The representation of a relationship between members
@@ -9,7 +9,7 @@ public class Relationship
 {
     public Relationship() { }
 
-    public Relationship(string id, RelationshipType type, Member member)
+    public Relationship(string id, string type, Member member)
     {
         Id = id;
         Type = type;
@@ -24,7 +24,8 @@ public class Relationship
     /// <summary>
     /// The type of relationship
     /// </summary>
-    public RelationshipType Type { get; set; }
+    /// <see cref="RelationshipType"/>
+    public string Type { get; set; }
 
     /// <summary>
     /// The member with whom the current user has the relationship
@@ -35,23 +36,39 @@ public class Relationship
 /// <summary>
 /// The relationship type between members
 /// </summary>
-public enum RelationshipType
+public class RelationshipType
 {
-    /// <summary>
-    /// Enum Friend for value: FRIEND
-    /// </summary>
     [JsonPropertyName("FRIEND")]
-    Friend = 1,
+    public static readonly string Friend = "FRIEND";
 
-    /// <summary>
-    /// Enum Block for value: BLOCK
-    /// </summary>
     [JsonPropertyName("BLOCK")]
-    Block = 2,
+    public static readonly string Block = "BLOCK";
 
-    /// <summary>
-    /// Enum FriendRequest for value: FRIEND_REQUEST
-    /// </summary>
     [JsonPropertyName("FRIEND_REQUEST")]
-    FriendRequest = 3,
+    public static readonly string FriendRequest = "FRIEND_REQUEST";
 }
+
+
+/// <summary>
+/// The relationship type between members
+/// </summary>
+// public enum RelationshipType
+// {
+//     /// <summary>
+//     /// Enum Friend for value: FRIEND
+//     /// </summary>
+//     [JsonPropertyName("FRIEND")]
+//     Friend = 1,
+
+//     /// <summary>
+//     /// Enum Block for value: BLOCK
+//     /// </summary>
+//     [JsonPropertyName("BLOCK")]
+//     Block = 2,
+
+//     /// <summary>
+//     /// Enum FriendRequest for value: FRIEND_REQUEST
+//     /// </summary>
+//     [JsonPropertyName("FRIEND_REQUEST")]
+//     FriendRequest = 3,
+// }

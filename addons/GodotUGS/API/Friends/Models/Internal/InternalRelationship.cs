@@ -6,8 +6,9 @@ using Unity.Services.Friends.Models;
 
 public class InternalRelationship
 {
+    /// <see cref="RelationshipType"/>
     [JsonPropertyName("type")]
-    public RelationshipType Type { get; set; }
+    public string Type { get; set; }
 
     [JsonPropertyName("members")]
     public List<InternalMember> Members { get; set; }
@@ -16,11 +17,12 @@ public class InternalRelationship
 public class InternalMember
 {
     [JsonPropertyName("profileName")]
-    public string ProfileName { get; set; }
+    public string ProfileName { get; set; } = "";
 
     [JsonPropertyName("id")]
     public string Id { get; set; }
 
+    /// <see cref="MemberRole"/>
     [JsonPropertyName("role")]
-    public MemberRole Role { get; set; }
+    public string Role { get; set; }
 }
