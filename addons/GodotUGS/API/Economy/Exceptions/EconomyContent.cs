@@ -1,7 +1,7 @@
-using System.Text.Json.Serialization;
-using Unity.Services.Core;
+namespace Unity.Services.Economy.Models;
 
-namespace Unity.Services.Economy;
+using System.Text.Json.Serialization;
+using Unity.Services.Core.Models;
 
 public class EconomyContent : CoreContent
 {

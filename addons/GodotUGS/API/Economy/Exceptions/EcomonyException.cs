@@ -3,6 +3,7 @@ namespace Unity.Services.Economy;
 using System;
 using System.Text.Json;
 using Unity.Services.Core;
+using Unity.Services.Economy.Models;
 
 public class EconomyException : CoreException
 {

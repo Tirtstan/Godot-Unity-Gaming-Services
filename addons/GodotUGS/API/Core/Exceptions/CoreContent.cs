@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
+namespace Unity.Services.Core.Models;
 
-namespace Unity.Services.Core;
+using System.Text.Json.Serialization;
 
 public class CoreContent
 {
