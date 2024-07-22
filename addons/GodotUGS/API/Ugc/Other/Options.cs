@@ -230,13 +230,24 @@ public class GetContentsArgs : BaseSearchArgs<SearchContentSortBy>
     /// Optional list of tag ids used to retrieve content with corresponding tags
     /// </summary>
     public List<string> Tags { get; set; }
+
+    /// <summary>
+    /// True if the content should include the statistics
+    /// </summary>
+    public bool IncludeStatistics { get; set; }
 }
 
 /// <summary>
 /// Support class to make a content request with <see cref="UgcService.GetPlayerContentsAsync"/>
 /// Contains all the required and optional parameters of the request
 /// </summary>
-public class GetPlayerContentsArgs : BaseSearchArgs<SearchContentSortBy> { }
+public class GetPlayerContentsArgs : BaseSearchArgs<SearchContentSortBy>
+{
+    /// <summary>
+    /// True if the content should include the statistics
+    /// </summary>
+    public bool IncludeStatistics { get; set; }
+}
 
 /// <summary>
 /// Support class to make a content request with <see cref="UgcService.GetContentTrendsAsync"/>
