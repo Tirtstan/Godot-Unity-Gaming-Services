@@ -95,6 +95,6 @@ public class InternalContentVersion
     /// <summary>
     /// Parameter thumbnailUploadStatus of ContentVersionDTO, see <see cref="ContentUploadStatus"/>
     /// </summary>
-    [[JsonPropertyName("thumbnailUploadStatus")]
+    [JsonPropertyName("thumbnailUploadStatus")]
     public string ThumbnailUploadStatus { get; }
 }

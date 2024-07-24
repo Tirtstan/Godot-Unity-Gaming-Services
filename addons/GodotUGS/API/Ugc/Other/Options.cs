@@ -466,7 +466,7 @@ public class CreateContentArgs
     /// <summary>
     /// The list of tag ids selected for the content
     /// </summary>
-    public List<string> TagsId { get; set; }
+    public List<string> TagIds { get; set; }
 }
 
 /// <summary>
