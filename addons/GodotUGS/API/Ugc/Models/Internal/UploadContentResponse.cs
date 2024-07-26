@@ -39,4 +39,30 @@ public class UploadContentResponse
 
     [JsonPropertyName("content")]
     public InternalContent Content { get; }
+
+    internal Dictionary<string, string> GetContentHeadersAsQueryParam()
+    {
+        var dictionary = new Dictionary<string, string>();
+
+        if (UploadContentHeaders != null)
+        {
+            var uploadContentHeadersStringValue = UploadContentHeaders.ToString();
+            dictionary.Add("uploadContentHeaders", uploadContentHeadersStringValue);
+        }
+
+        return dictionary;
+    }
+
+    internal Dictionary<string, string> GetThumbnailHeadersAsQueryParam()
+    {
+        var dictionary = new Dictionary<string, string>();
+
+        if (UploadThumbnailHeaders != null)
+        {
+            var uploadThumbnailHeadersStringValue = UploadThumbnailHeaders.ToString();
+            dictionary.Add("uploadThumbnailHeaders", uploadThumbnailHeadersStringValue);
+        }
+
+        return dictionary;
+    }
 }

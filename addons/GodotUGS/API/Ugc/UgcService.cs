@@ -1,6 +1,7 @@
 namespace Unity.Services.Ugc;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -22,7 +23,7 @@ public partial class UgcService : Node
     private const string UgcURL = "https://ugc.services.api.unity.com/v1";
     private static string ProjectId => UnityServices.Instance.ProjectId;
     private static string PlayerId => AuthenticationService.Instance.PlayerId;
-    private static string EnvironmentId => UnityServices.Instance.Environment;
+    private static string EnvironmentId => AuthenticationService.Instance.EnvironmentId;
 
     public override void _EnterTree() => Instance = this;
 
@@ -361,7 +362,14 @@ public partial class UgcService : Node
             RequestFormat = DataFormat.Json,
         }.AddFile("asset", GetBytes(asset), "", ContentType.Binary);
 
+        foreach (var header in contentResponse.UploadContentHeaders)
+        {
+            foreach (var value in header.Value)
+                contentRequest.AddHeader(header.Key, value);
+        }
+
         var response = await ugcClient.ExecuteAsync(contentRequest);
+        GD.Print(response.Content);
         if (!response.IsSuccessful)
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
 
@@ -371,6 +379,12 @@ public partial class UgcService : Node
             {
                 RequestFormat = DataFormat.Json
             }.AddFile("thumbnail", GetBytes(thumbnail), "", ContentType.Binary);
+
+            foreach (var header in contentResponse.UploadThumbnailHeaders)
+            {
+                foreach (var value in header.Value)
+                    thumbnailRequest.AddHeader(header.Key, value);
+            }
 
             response = await ugcClient.ExecuteAsync(thumbnailRequest);
             if (!response.IsSuccessful)
