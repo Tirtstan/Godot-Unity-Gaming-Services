@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
@@ -24,6 +25,7 @@ public partial class UgcService : Node
     private static string ProjectId => UnityServices.Instance.ProjectId;
     private static string PlayerId => AuthenticationService.Instance.PlayerId;
     private static string EnvironmentId => AuthenticationService.Instance.EnvironmentId;
+    private MD5 md5 = MD5.Create();
 
     public override void _EnterTree() => Instance = this;
 
@@ -322,13 +324,6 @@ public partial class UgcService : Node
             RequestFormat = DataFormat.Json
         };
 
-        var md5 = MD5.Create();
-        string assetMD5Hash = GetHash(md5, createContentArgs.Asset);
-
-        string thumbnailMd5Hash = null;
-        if (createContentArgs.Thumbnail != null)
-            thumbnailMd5Hash = GetHash(md5, createContentArgs.Thumbnail);
-
         request.AddJsonBody(
             new NewContentRequest(
                 createContentArgs.Name,
@@ -336,8 +331,8 @@ public partial class UgcService : Node
                 createContentArgs.CustomId,
                 createContentArgs.IsPublic ? ContentVisibility.Public : ContentVisibility.Private,
                 createContentArgs.TagIds,
-                assetMD5Hash,
-                thumbnailMd5Hash,
+                GetHash(createContentArgs.Asset),
+                GetHash(createContentArgs.Thumbnail),
                 createContentArgs.Metadata
             )
         );
@@ -355,36 +350,39 @@ public partial class UgcService : Node
         }
     }
 
-    private async Task UploadContentDataAsync(UploadContentResponse contentResponse, Stream asset, Stream thumbnail)
+    private async Task UploadContentDataAsync(UploadContentResponse contentResponse, byte[] asset, byte[] thumbnail)
     {
         var contentRequest = new RestRequest(contentResponse.UploadContentUrl, Method.Put)
         {
             RequestFormat = DataFormat.Json,
-        }.AddFile("asset", GetBytes(asset), "", ContentType.Binary);
+            AlwaysSingleFileAsContent = true
+        }.AddFile("asset", asset, "", ContentType.Binary);
 
-        foreach (var header in contentResponse.UploadContentHeaders)
-        {
-            foreach (var value in header.Value)
-                contentRequest.AddHeader(header.Key, value);
-        }
+        if (contentResponse?.UploadContentHeaders != null)
+            foreach (var header in contentResponse.UploadContentHeaders)
+            {
+                foreach (var value in header.Value)
+                    contentRequest.AddHeader(header.Key, value);
+            }
 
         var response = await ugcClient.ExecuteAsync(contentRequest);
-        GD.Print(response.Content);
         if (!response.IsSuccessful)
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
 
-        if (thumbnail != null)
+        if (thumbnail != null && thumbnail.Length > 0)
         {
             var thumbnailRequest = new RestRequest(contentResponse.UploadThumbnailUrl, Method.Put)
             {
-                RequestFormat = DataFormat.Json
-            }.AddFile("thumbnail", GetBytes(thumbnail), "", ContentType.Binary);
+                RequestFormat = DataFormat.Json,
+                AlwaysSingleFileAsContent = true
+            }.AddFile("thumbnail", thumbnail, "", ContentType.Binary);
 
-            foreach (var header in contentResponse.UploadThumbnailHeaders)
-            {
-                foreach (var value in header.Value)
-                    thumbnailRequest.AddHeader(header.Key, value);
-            }
+            if (contentResponse?.UploadThumbnailHeaders != null)
+                foreach (var header in contentResponse.UploadThumbnailHeaders)
+                {
+                    foreach (var value in header.Value)
+                        thumbnailRequest.AddHeader(header.Key, value);
+                }
 
             response = await ugcClient.ExecuteAsync(thumbnailRequest);
             if (!response.IsSuccessful)
@@ -392,18 +390,24 @@ public partial class UgcService : Node
         }
     }
 
-    private static string GetHash(MD5 md5, Stream stream)
-    {
-        stream.Position = 0;
-        byte[] hash = md5.ComputeHash(stream);
-        return Convert.ToBase64String(hash);
-    }
+    /// <summary>
+    /// Create a new version of a content.
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <param name="asset">The stream containing the binary payload of the content</param>
+    /// <param name="thumbnail">The stream containing the image representing the content</param>
+    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Content> CreateContentVersionAsync(string contentId, Stream asset, Stream thumbnail = null) { }
 
-    private static byte[] GetBytes(Stream stream)
+    private string GetHash(byte[] bytes)
     {
-        using var memoryStream = new MemoryStream();
-        stream.CopyTo(memoryStream);
-        return memoryStream.ToArray();
+        if (bytes == null || bytes.Length == 0)
+            return null;
+
+        var md5Bytes = md5.ComputeHash(bytes);
+        return Convert.ToBase64String(md5Bytes);
     }
 
     private static void Validate()

@@ -420,7 +420,7 @@ public class CreateContentArgs
     /// <param name="name">The title of the content</param>
     /// <param name="description">The text describing the content</param>
     /// <param name="asset">The stream containing the binary payload of the content</param>
-    public CreateContentArgs(string name, string description, Stream asset)
+    public CreateContentArgs(string name, string description, byte[] asset)
     {
         Name = name;
         Description = description;
@@ -445,12 +445,12 @@ public class CreateContentArgs
     /// <summary>
     /// The stream containing the binary payload of the content
     /// </summary>
-    public Stream Asset { get; set; }
+    public byte[] Asset { get; set; }
 
     /// <summary>
     /// The stream containing the image representing the content
     /// </summary>
-    public Stream Thumbnail { get; set; }
+    public byte[] Thumbnail { get; set; }
 
     /// <summary>
     /// Custom metadata of the content. It is a string that a developer can use to store any information about the content.
