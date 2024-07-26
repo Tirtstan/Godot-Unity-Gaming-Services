@@ -35,7 +35,7 @@ public class InternalTag
     public string Name { get; }
 
     /// <summary>
-    /// The project that the tag belongs to. If \&quot;global\&quot; then tag is un-editable/un-deletable and is shared  among all projects.
+    /// The project that the tag belongs to. If "global" then tag is un-editable/un-deletable and is shared among all projects.
     /// </summary>
     [JsonPropertyName("projectId")]
     public string ProjectId { get; }

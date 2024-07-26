@@ -724,8 +724,8 @@ public class ReportContentArgs
     /// Construct a new ReportContentArgs object.
     /// </summary>
     /// <param name="contentId">The content identifier of the representation</param>
-    /// <param name="reportReason">The representation identifier</param>
-    public ReportContentArgs(string contentId, Reason reportReason)
+    /// <param name="reportReason">The representation identifier, see <see cref="Reason"/></param>
+    public ReportContentArgs(string contentId, string reportReason)
     {
         ContentId = contentId;
         ReportReason = reportReason;
@@ -737,9 +737,9 @@ public class ReportContentArgs
     public string ContentId { get; set; }
 
     /// <summary>
-    /// The report reason enum for the request
+    /// The report reason enum for the request, see <see cref="Reason"/>
     /// </summary>
-    public Reason ReportReason { get; set; }
+    public string ReportReason { get; set; }
 
     /// <summary>
     /// Optional: if Reason was set to Other, provide an alternate reason here

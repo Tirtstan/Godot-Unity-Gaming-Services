@@ -21,7 +21,7 @@ public partial class UgcService : Node
     public static UgcService Instance { get; private set; }
 
     private RestClient ugcClient;
-    private const string UgcURL = "https://ugc.services.api.unity.com/v1";
+    private const string UgcURL = "https://ugc.services.api.unity.com";
     private static string ProjectId => UnityServices.Instance.ProjectId;
     private static string PlayerId => AuthenticationService.Instance.PlayerId;
     private static string EnvironmentId => AuthenticationService.Instance.EnvironmentId;
@@ -61,7 +61,7 @@ public partial class UgcService : Node
     {
         Validate();
 
-        var request = new RestRequest($"/projects/{ProjectId}/environments/{EnvironmentId}/content/search")
+        var request = new RestRequest($"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/search")
         {
             RequestFormat = DataFormat.Json
         }
@@ -119,7 +119,7 @@ public partial class UgcService : Node
     {
         Validate();
 
-        var request = new RestRequest($"/content/search") { RequestFormat = DataFormat.Json }
+        var request = new RestRequest($"/v1/content/search") { RequestFormat = DataFormat.Json }
             .AddQueryParameter("offset", getPlayerContentsArgs?.Offset ?? 0)
             .AddQueryParameter("limit", getPlayerContentsArgs?.Limit ?? 25)
             .AddQueryParameter("includeTotal", getPlayerContentsArgs?.IncludeTotal ?? false)
@@ -168,7 +168,7 @@ public partial class UgcService : Node
         Validate();
 
         var request = new RestRequest(
-            $"/projects/{ProjectId}/environments/{EnvironmentId}/content/trends/{getContentTrendsArgs.TrendType}"
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/trends/{getContentTrendsArgs.TrendType}"
         )
         {
             RequestFormat = DataFormat.Json
@@ -210,7 +210,7 @@ public partial class UgcService : Node
         Validate();
 
         var request = new RestRequest(
-            $"/projects/{ProjectId}/environments/{EnvironmentId}/content/{getContentVersionsArgs.ContentId}/versions"
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{getContentVersionsArgs.ContentId}/versions"
         )
         {
             RequestFormat = DataFormat.Json
@@ -253,7 +253,7 @@ public partial class UgcService : Node
         Validate();
 
         var request = new RestRequest(
-            $"/projects/{ProjectId}/environments/{EnvironmentId}/content/{getContentArgs.ContentId}"
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{getContentArgs.ContentId}"
         )
         {
             RequestFormat = DataFormat.Json
@@ -270,6 +270,335 @@ public partial class UgcService : Node
         {
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
         }
+    }
+
+    /// <summary>
+    /// Create a new content in a project environment
+    /// </summary>
+    /// <param name="createContentArgs">Contains all the parameters of the request</param>
+    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Content> CreateContentAsync(CreateContentArgs createContentArgs)
+    {
+        Validate();
+
+        var request = new RestRequest($"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content", Method.Post)
+        {
+            RequestFormat = DataFormat.Json
+        };
+
+        request.AddJsonBody(
+            new NewContentRequest(
+                createContentArgs.Name,
+                createContentArgs.Description,
+                createContentArgs.CustomId,
+                createContentArgs.IsPublic ? ContentVisibility.Public : ContentVisibility.Private,
+                createContentArgs.TagIds,
+                GetHash(createContentArgs.Asset),
+                GetHash(createContentArgs.Thumbnail),
+                createContentArgs.Metadata
+            )
+        );
+
+        var response = await ugcClient.ExecuteAsync<UploadContentResponse>(request);
+        if (response.IsSuccessful)
+        {
+            var content = new Content(response.Data.Content);
+            await UploadContentDataAsync(response.Data, createContentArgs.Asset, createContentArgs.Thumbnail);
+            return content;
+        }
+        else
+        {
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    /// <summary>
+    /// Create a new version of a content.
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <param name="asset">The stream containing the binary payload of the content</param>
+    /// <param name="thumbnail">The stream containing the image representing the content</param>
+    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Content> CreateContentVersionAsync(string contentId, byte[] asset, byte[] thumbnail = null)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{contentId}/version",
+            Method.Post
+        );
+
+        string assetHash = GetHash(asset);
+        string thumbnailHash = GetHash(thumbnail);
+        request.AddJsonBody(new { assetHash, thumbnailHash });
+
+        var response = await ugcClient.ExecuteAsync<UploadContentResponse>(request);
+        if (response.IsSuccessful)
+        {
+            var content = new Content(response.Data.Content);
+            await UploadContentDataAsync(response.Data, asset, thumbnail);
+            return content;
+        }
+        else
+        {
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    /// <summary>
+    /// Delete a content
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>A task</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task DeleteContentAsync(string contentId)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{contentId}",
+            Method.Delete
+        )
+        {
+            RequestFormat = DataFormat.Json
+        };
+
+        var response = await ugcClient.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Get a list of tags associated with the project
+    /// </summary>
+    /// <returns>A list of tags</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<List<Tag>> GetTagsAsync()
+    {
+        Validate();
+
+        var request = new RestRequest($"/v1/projects/{ProjectId}/environments/{EnvironmentId}/tags")
+        {
+            RequestFormat = DataFormat.Json
+        };
+
+        var response = await ugcClient.ExecuteAsync<List<InternalTag>>(request);
+        if (response.IsSuccessful)
+            return response.Data.ConvertAll(x => new Tag(x));
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Get the rating of a content.
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>The rating of the content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<ContentUserRating> GetUserContentRatingAsync(string contentId)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{contentId}/rating"
+        )
+        {
+            RequestFormat = DataFormat.Json
+        };
+
+        var response = await ugcClient.ExecuteAsync<InternalContentUserRating>(request);
+        if (response.IsSuccessful)
+            return new ContentUserRating(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Submit a user rating of a content
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <param name="rating">The rating value</param>
+    /// <returns>The rating</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<ContentUserRating> SubmitUserContentRatingAsync(string contentId, float rating)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{contentId}/rating",
+            Method.Put
+        ).AddJsonBody(new { rating });
+
+        var response = await ugcClient.ExecuteAsync<InternalContentUserRating>(request);
+        if (response.IsSuccessful)
+            return new ContentUserRating(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Report a content
+    /// </summary>
+    /// <param name="reportContentArgs">The details of the report request</param>
+    /// <returns>The reported content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Content> ReportContentAsync(ReportContentArgs reportContentArgs)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v2/projects/{ProjectId}/environments/{EnvironmentId}/content/{reportContentArgs.ContentId}/report",
+            Method.Post
+        ).AddJsonBody(new { reportContentArgs.ReportReason, reportContentArgs.OtherReason });
+
+        var response = await ugcClient.ExecuteAsync<InternalContent>(request);
+        if (response.IsSuccessful)
+            return new Content(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Approve content that needed moderation.
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>The approved content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Content> ApproveContentAsync(string contentId)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{contentId}/approve",
+            Method.Post
+        )
+        {
+            RequestFormat = DataFormat.Json
+        };
+
+        var response = await ugcClient.ExecuteAsync<InternalContent>(request);
+        if (response.IsSuccessful)
+            return new Content(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Reject content that needed moderation.
+    /// </summary>
+    /// <param name="reportContentArgs">The details of the report reject</param>
+    /// <returns>The rejected content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Content> RejectContentAsync(ReportContentArgs reportContentArgs)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{reportContentArgs.ContentId}/reject",
+            Method.Post
+        ).AddJsonBody(new { reportContentArgs.ReportReason, reportContentArgs.OtherReason });
+
+        var response = await ugcClient.ExecuteAsync<InternalContent>(request);
+        if (response.IsSuccessful)
+            return new Content(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Search for content that needs moderation in the project.
+    /// </summary>
+    /// <param name="searchContentModerationArgs">The details of the search request</param>
+    /// <returns>A list of contents requiring moderation with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<PagedResults<Content>> SearchContentModerationAsync(
+        SearchContentModerationArgs searchContentModerationArgs
+    )
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/moderation/search"
+        )
+            .AddQueryParameter("offset", searchContentModerationArgs?.Offset ?? 0)
+            .AddQueryParameter("limit", searchContentModerationArgs?.Limit ?? 25)
+            .AddQueryParameter("includeTotal", searchContentModerationArgs?.IncludeTotal ?? false);
+
+        if (searchContentModerationArgs?.SortBys != null)
+        {
+            foreach (var sort in searchContentModerationArgs?.SortBys)
+                request.AddQueryParameter("sortBys", sort);
+        }
+
+        if (!string.IsNullOrEmpty(searchContentModerationArgs?.Search))
+            request.AddQueryParameter("search", searchContentModerationArgs.Search);
+
+        if (searchContentModerationArgs?.Filters != null)
+        {
+            foreach (var filter in searchContentModerationArgs?.Filters)
+                request.AddQueryParameter("filters", filter);
+        }
+
+        var response = await ugcClient.ExecuteAsync<PagedResults<InternalContent>>(request);
+        if (response.IsSuccessful)
+        {
+            return new PagedResults<Content>(
+                response.Data.Offset,
+                response.Data.Limit,
+                response.Data.Total,
+                response.Data.Results.ConvertAll(x => new Content(x))
+            );
+        }
+        else
+        {
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    /// <summary>
+    /// Update a specific content details.
+    /// </summary>
+    /// <param name="updateContentDetailsArgs">The details of the update request</param>
+    /// <returns>The updated content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Content> UpdateContentDetailsAsync(UpdateContentDetailsArgs updateContentDetailsArgs)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{updateContentDetailsArgs.ContentId}/details",
+            Method.Put
+        ).AddJsonBody(
+            new UpdateContentRequest(
+                updateContentDetailsArgs.Name,
+                updateContentDetailsArgs.Description,
+                updateContentDetailsArgs.CustomId,
+                updateContentDetailsArgs.IsPublic ? ContentVisibility.Public : ContentVisibility.Private,
+                0,
+                updateContentDetailsArgs.TagsId,
+                updateContentDetailsArgs.Version,
+                updateContentDetailsArgs.Metadata
+            )
+        );
+
+        var response = await ugcClient.ExecuteAsync<InternalContent>(request);
+        if (response.IsSuccessful)
+            return new Content(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
     /// <summary>
@@ -308,48 +637,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Create a new content in a project environment
-    /// </summary>
-    /// <param name="createContentArgs">Contains all the parameters of the request</param>
-    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
-    public async Task<Content> CreateContentAsync(CreateContentArgs createContentArgs)
-    {
-        Validate();
-
-        var request = new RestRequest($"/projects/{ProjectId}/environments/{EnvironmentId}/content", Method.Post)
-        {
-            RequestFormat = DataFormat.Json
-        };
-
-        request.AddJsonBody(
-            new NewContentRequest(
-                createContentArgs.Name,
-                createContentArgs.Description,
-                createContentArgs.CustomId,
-                createContentArgs.IsPublic ? ContentVisibility.Public : ContentVisibility.Private,
-                createContentArgs.TagIds,
-                GetHash(createContentArgs.Asset),
-                GetHash(createContentArgs.Thumbnail),
-                createContentArgs.Metadata
-            )
-        );
-
-        var response = await ugcClient.ExecuteAsync<UploadContentResponse>(request);
-        if (response.IsSuccessful)
-        {
-            var content = new Content(response.Data.Content);
-            await UploadContentDataAsync(response.Data, createContentArgs.Asset, createContentArgs.Thumbnail);
-            return content;
-        }
-        else
-        {
-            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
-        }
-    }
-
     private async Task UploadContentDataAsync(UploadContentResponse contentResponse, byte[] asset, byte[] thumbnail)
     {
         var contentRequest = new RestRequest(contentResponse.UploadContentUrl, Method.Put)
@@ -359,11 +646,13 @@ public partial class UgcService : Node
         }.AddFile("asset", asset, "", ContentType.Binary);
 
         if (contentResponse?.UploadContentHeaders != null)
+        {
             foreach (var header in contentResponse.UploadContentHeaders)
             {
                 foreach (var value in header.Value)
                     contentRequest.AddHeader(header.Key, value);
             }
+        }
 
         var response = await ugcClient.ExecuteAsync(contentRequest);
         if (!response.IsSuccessful)
@@ -378,28 +667,19 @@ public partial class UgcService : Node
             }.AddFile("thumbnail", thumbnail, "", ContentType.Binary);
 
             if (contentResponse?.UploadThumbnailHeaders != null)
+            {
                 foreach (var header in contentResponse.UploadThumbnailHeaders)
                 {
                     foreach (var value in header.Value)
                         thumbnailRequest.AddHeader(header.Key, value);
                 }
+            }
 
             response = await ugcClient.ExecuteAsync(thumbnailRequest);
             if (!response.IsSuccessful)
                 throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
         }
     }
-
-    /// <summary>
-    /// Create a new version of a content.
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <param name="asset">The stream containing the binary payload of the content</param>
-    /// <param name="thumbnail">The stream containing the image representing the content</param>
-    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
-    public async Task<Content> CreateContentVersionAsync(string contentId, Stream asset, Stream thumbnail = null) { }
 
     private string GetHash(byte[] bytes)
     {
