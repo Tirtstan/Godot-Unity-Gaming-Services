@@ -2,9 +2,7 @@ namespace Unity.Services.Ugc;
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
@@ -25,7 +23,7 @@ public partial class UgcService : Node
     private static string ProjectId => UnityServices.Instance.ProjectId;
     private static string PlayerId => AuthenticationService.Instance.PlayerId;
     private static string EnvironmentId => AuthenticationService.Instance.EnvironmentId;
-    private MD5 md5 = MD5.Create();
+    private readonly MD5 md5 = MD5.Create();
 
     public override void _EnterTree() => Instance = this;
 
@@ -824,7 +822,265 @@ public partial class UgcService : Node
         var request = new RestRequest(
             $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{createRepresentationArgs.ContentId}/representations",
             Method.Post
+        ).AddJsonBody(new { createRepresentationArgs.Tags, createRepresentationArgs.Metadata });
+
+        var response = await ugcClient.ExecuteAsync<InternalRepresentation>(request);
+        if (response.IsSuccessful)
+            return new Representation(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Get a specific representation of a content
+    /// </summary>
+    /// <param name="getRepresentationArgs">Contains all the parameters of the request</param>
+    /// <returns>The representation</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Representation> GetRepresentationAsync(GetRepresentationArgs getRepresentationArgs)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{getRepresentationArgs.ContentId}/representations/{getRepresentationArgs.RepresentationId}"
+        )
+        {
+            RequestFormat = DataFormat.Json
+        };
+
+        var response = await ugcClient.ExecuteAsync<InternalRepresentation>(request);
+        if (response.IsSuccessful)
+            return new Representation(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Update a specific representation.
+    /// </summary>
+    /// <param name="updateRepresentationArgs">The details of the update request</param>
+    /// <returns>The updated representation</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Representation> UpdateRepresentationAsync(UpdateRepresentationArgs updateRepresentationArgs)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{updateRepresentationArgs.ContentId}/representations/{updateRepresentationArgs.RepresentationId}",
+            Method.Put
+        ).AddJsonBody(
+            new
+            {
+                updateRepresentationArgs.Tags,
+                updateRepresentationArgs.Version,
+                updateRepresentationArgs.Metadata
+            }
         );
+
+        var response = await ugcClient.ExecuteAsync<InternalRepresentation>(request);
+        if (response.IsSuccessful)
+            return new Representation(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Create a representation version.
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <param name="representationId">The representation identifier</param>
+    /// <param name="asset">The stream containing the binary payload of the representation version</param>
+    /// <returns>The representation.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<RepresentationVersion> CreateRepresentationVersionAsync(
+        string contentId,
+        string representationId,
+        byte[] asset
+    )
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{contentId}/representations/{representationId}/version",
+            Method.Post
+        ).AddJsonBody(new { md5Hash = GetHash(asset) });
+
+        var response = await ugcClient.ExecuteAsync<InternalRepresentationVersion>(request);
+        if (response.IsSuccessful)
+            return new RepresentationVersion(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Get representations of a content
+    /// </summary>
+    /// <param name="getRepresentationsArgs">The details of the search request</param>
+    /// <returns>A list of representations of specific content with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<PagedResults<Representation>> GetRepresentationsAsync(
+        GetRepresentationsArgs getRepresentationsArgs
+    )
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{getRepresentationsArgs.ContentId}/representations/search"
+        )
+        {
+            RequestFormat = DataFormat.Json
+        }
+            .AddQueryParameter("offset", getRepresentationsArgs?.Offset ?? 0)
+            .AddQueryParameter("limit", getRepresentationsArgs?.Limit ?? 25)
+            .AddQueryParameter("includeTotal", getRepresentationsArgs?.IncludeTotal ?? false);
+
+        if (getRepresentationsArgs?.SortBys != null)
+        {
+            foreach (var sort in getRepresentationsArgs?.SortBys)
+                request.AddQueryParameter("sortBys", sort);
+        }
+
+        if (!string.IsNullOrEmpty(getRepresentationsArgs?.Search))
+            request.AddQueryParameter("search", getRepresentationsArgs.Search);
+
+        if (getRepresentationsArgs?.Filters != null)
+        {
+            foreach (var filter in getRepresentationsArgs?.Filters)
+                request.AddQueryParameter("filters", filter);
+        }
+
+        var response = await ugcClient.ExecuteAsync<PagedResults<InternalRepresentation>>(request);
+        if (response.IsSuccessful)
+        {
+            return new PagedResults<Representation>(
+                response.Data.Offset,
+                response.Data.Limit,
+                response.Data.Total,
+                response.Data.Results.ConvertAll(x => new Representation(x))
+            );
+        }
+        else
+        {
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    /// <summary>
+    /// Search representations within a project
+    /// </summary>
+    /// <param name="searchRepresentationsArgs">The details of the search request</param>
+    /// <returns>A list of representations within a project with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<PagedResults<Representation>> SearchRepresentationsAsync(
+        SearchRepresentationsArgs searchRepresentationsArgs
+    )
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/representations/search"
+        )
+            .AddQueryParameter("offset", searchRepresentationsArgs?.Offset ?? 0)
+            .AddQueryParameter("limit", searchRepresentationsArgs?.Limit ?? 25)
+            .AddQueryParameter("includeTotal", searchRepresentationsArgs?.IncludeTotal ?? false);
+
+        if (searchRepresentationsArgs?.SortBys != null)
+        {
+            foreach (var sort in searchRepresentationsArgs?.SortBys)
+                request.AddQueryParameter("sortBys", sort);
+        }
+
+        if (!string.IsNullOrEmpty(searchRepresentationsArgs?.Search))
+            request.AddQueryParameter("search", searchRepresentationsArgs.Search);
+
+        if (searchRepresentationsArgs?.Filters != null)
+        {
+            foreach (var filter in searchRepresentationsArgs?.Filters)
+                request.AddQueryParameter("filters", filter);
+        }
+
+        var response = await ugcClient.ExecuteAsync<PagedResults<InternalRepresentation>>(request);
+        if (response.IsSuccessful)
+        {
+            return new PagedResults<Representation>(
+                response.Data.Offset,
+                response.Data.Limit,
+                response.Data.Total,
+                response.Data.Results.ConvertAll(x => new Representation(x))
+            );
+        }
+        else
+        {
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    /// <summary>
+    /// Get versions of a representation
+    /// </summary>
+    /// <param name="getRepresentationVersionsArgs">The details of the search request</param>
+    /// <returns>A list of versions of a specific representation with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<PagedResults<RepresentationVersion>> GetRepresentationVersionsAsync(
+        GetRepresentationVersionsArgs getRepresentationVersionsArgs
+    )
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{getRepresentationVersionsArgs.ContentId}/representations/{getRepresentationVersionsArgs.RepresentationId}/versions"
+        )
+            .AddQueryParameter("offset", getRepresentationVersionsArgs?.Offset ?? 0)
+            .AddQueryParameter("limit", getRepresentationVersionsArgs?.Limit ?? 25)
+            .AddQueryParameter("includeTotal", getRepresentationVersionsArgs?.IncludeTotal ?? false);
+
+        if (getRepresentationVersionsArgs?.SortBys != null)
+        {
+            foreach (var sort in getRepresentationVersionsArgs?.SortBys)
+                request.AddQueryParameter("sortBys", sort);
+        }
+
+        var response = await ugcClient.ExecuteAsync<PagedResults<InternalRepresentationVersion>>(request);
+        if (response.IsSuccessful)
+        {
+            return new PagedResults<RepresentationVersion>(
+                response.Data.Offset,
+                response.Data.Limit,
+                response.Data.Total,
+                response.Data.Results.ConvertAll(x => new RepresentationVersion(x))
+            );
+        }
+        else
+        {
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    /// <summary>
+    /// Delete representation
+    /// </summary>
+    /// <param name="deleteRepresentationArgs">The id of the representation to delete</param>
+    /// <returns>A task</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task DeleteRepresentationAsync(DeleteRepresentationArgs deleteRepresentationArgs)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{deleteRepresentationArgs.ContentId}/representations/{deleteRepresentationArgs.RepresentationId}",
+            Method.Delete
+        );
+
+        var response = await ugcClient.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
     private string GetHash(byte[] bytes)
