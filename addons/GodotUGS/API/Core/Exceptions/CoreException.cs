@@ -15,5 +15,5 @@ public abstract class CoreException : Exception
     public string RawContent { get; }
     public string Title => Content?.Title ?? string.Empty;
     public int Status => Content?.Status ?? 0;
-    public override string Message => Content?.Detail ?? string.Empty;
+    public override string Message => Content?.Detail ?? Content?.Detail2 ?? base.Message;
 }

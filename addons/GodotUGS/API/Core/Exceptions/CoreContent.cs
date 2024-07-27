@@ -12,4 +12,7 @@ public class CoreContent
 
     [JsonPropertyName("detail")]
     public string Detail { get; set; }
+
+    [JsonPropertyName("Detail")]
+    public string Detail2 { get; set; }
 }

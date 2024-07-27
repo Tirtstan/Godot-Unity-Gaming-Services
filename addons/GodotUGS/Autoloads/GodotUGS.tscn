@@ -25,6 +25,7 @@ script = ExtResource("4_gb060")
 script = ExtResource("5_jkf6u")
 
 [node name="Economy" type="Node" parent="."]
+process_mode = 4
 script = ExtResource("6_q0ot7")
 
 [node name="Friends" type="Node" parent="."]

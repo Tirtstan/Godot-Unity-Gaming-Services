@@ -1,6 +1,7 @@
 namespace Unity.Services.Ugc;
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Container for paginated results used in search requests
@@ -42,5 +43,6 @@ public class PagedResults<T>
     /// <summary>
     /// List of results fetched
     /// </summary>
+    [JsonPropertyName("results")]
     public List<T> Results { get; }
 }
