@@ -1,4 +1,4 @@
-namespace Unity.Services.Ugc;
+namespace Unity.Services.Ugc.Models;
 
 // sourced from Unity
 

@@ -602,6 +602,135 @@ public partial class UgcService : Node
     }
 
     /// <summary>
+    /// Subscribe to the content for the current user
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>The created subscription</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Subscription> CreateSubscriptionAsync(string contentId)
+    {
+        Validate();
+
+        var request = new RestRequest($"/v1/subscriptions", Method.Post).AddJsonBody(
+            new
+            {
+                projectId = ProjectId,
+                environmentId = EnvironmentId,
+                contentId
+            }
+        );
+
+        var response = await ugcClient.ExecuteAsync<InternalSubscription>(request);
+        if (response.IsSuccessful)
+            return new Subscription(response.Data);
+        else
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Unsubscribe to the content for the current user
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>A task</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task DeleteSubscriptionAsync(string contentId)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/subscriptions/projects/{ProjectId}/environments/{EnvironmentId}/content/{contentId}",
+            Method.Delete
+        );
+
+        var response = await ugcClient.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    /// <summary>
+    /// Get all subscriptions of the current user
+    /// </summary>
+    /// <param name="getSubscriptionsArgs">The details of the search request</param>
+    /// <returns>A list of subscriptions of the current user with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<PagedResults<Subscription>> GetSubscriptionsAsync(GetSubscriptionsArgs getSubscriptionsArgs)
+    {
+        Validate();
+
+        var request = new RestRequest($"/v1/subscriptions/search") { RequestFormat = DataFormat.Json }
+            .AddQueryParameter("offset", getSubscriptionsArgs?.Offset ?? 0)
+            .AddQueryParameter("limit", getSubscriptionsArgs?.Limit ?? 25)
+            .AddQueryParameter("includeTotal", getSubscriptionsArgs?.IncludeTotal ?? false);
+
+        if (getSubscriptionsArgs?.SortBys != null)
+        {
+            foreach (var sort in getSubscriptionsArgs?.SortBys)
+                request.AddQueryParameter("sortBys", sort);
+        }
+
+        if (!string.IsNullOrEmpty(getSubscriptionsArgs?.Search))
+            request.AddQueryParameter("search", getSubscriptionsArgs.Search);
+
+        if (getSubscriptionsArgs?.Filters != null)
+        {
+            foreach (var filter in getSubscriptionsArgs?.Filters)
+                request.AddQueryParameter("filters", filter);
+        }
+
+        var response = await ugcClient.ExecuteAsync<PagedResults<InternalSubscription>>(request);
+        if (response.IsSuccessful)
+        {
+            return new PagedResults<Subscription>(
+                response.Data.Offset,
+                response.Data.Limit,
+                response.Data.Total,
+                response.Data.Results.ConvertAll(x => new Subscription(x))
+            );
+        }
+        else
+        {
+            throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    /// <summary>
+    /// Check if the current user is subscribed to the content
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>true if the content is subscribed to, false otherwise</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<bool> IsSubscribedToAsync(string contentId)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/subscriptions/projects/{ProjectId}/environments/{EnvironmentId}/content/{contentId}"
+        )
+        {
+            RequestFormat = DataFormat.Json
+        };
+
+        var response = await ugcClient.ExecuteAsync(request);
+
+        if (response.IsSuccessful)
+        {
+            return true;
+        }
+        else
+        {
+            var e = new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+            if (e.Content.Code == 22018) // code for not found
+                return false;
+            else
+                throw e;
+        }
+    }
+
+    /// <summary>
     /// Download data and/or thumbnail of a content
     /// </summary>
     /// <param name="content">The content that will have its data downloaded</param>
@@ -679,6 +808,23 @@ public partial class UgcService : Node
             if (!response.IsSuccessful)
                 throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
         }
+    }
+
+    /// <summary>
+    /// Create a new representation of a content
+    /// </summary>
+    /// <param name="createRepresentationArgs">Contains all the parameters of the request</param>
+    /// <returns>The created representation</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public async Task<Representation> CreateRepresentationAsync(CreateRepresentationArgs createRepresentationArgs)
+    {
+        Validate();
+
+        var request = new RestRequest(
+            $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{createRepresentationArgs.ContentId}/representations",
+            Method.Post
+        );
     }
 
     private string GetHash(byte[] bytes)

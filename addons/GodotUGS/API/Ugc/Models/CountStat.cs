@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
-
 namespace Unity.Services.Ugc.Models;
+
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// CountStat model
