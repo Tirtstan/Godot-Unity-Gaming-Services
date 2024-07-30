@@ -2,6 +2,8 @@ namespace Unity.Services.Ugc;
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -741,16 +743,36 @@ public partial class UgcService : Node
     {
         Validate();
 
-        if (downloadContent)
+        if (downloadContent) // just keep getting auth errors
         {
-            var request = new RestRequest(content.DownloadUrl) { RequestFormat = DataFormat.Json };
+            using var httpClient = new System.Net.Http.HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                AuthenticationService.Instance.AccessToken
+            );
 
-            var response = await ugcClient.ExecuteAsync(request);
-            if (response.IsSuccessful)
-                content.DownloadedContent = response?.RawBytes ?? null;
+            var response = await httpClient.GetAsync(content.DownloadUrl);
+            if (response.IsSuccessStatusCode)
+            {
+                content.DownloadedContent = await response.Content.ReadAsByteArrayAsync();
+            }
             else
-                throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+            {
+                throw new UgcException(await response.Content.ReadAsStringAsync(), response.ReasonPhrase, null);
+            }
         }
+
+        // if (downloadContent)
+        // {
+        //     var request = new RestRequest(content.DownloadUrl) { RequestFormat = DataFormat.Json };
+        //     GD.Print(content.DownloadUrl);
+
+        //     var response = await ugcClient.ExecuteAsync(request);
+        //     if (response.IsSuccessful)
+        //         content.DownloadedContent = response?.RawBytes ?? null;
+        //     else
+        //         throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
+        // }
 
         if (downloadThumbnail && !string.IsNullOrEmpty(content.ThumbnailUrl))
         {

@@ -378,6 +378,7 @@ public partial class AuthenticationService : Node
         try
         {
             config.EraseSectionKey(currentProfile, "sessionToken");
+            config.Save(CachePath);
         }
         catch { }
     }
@@ -391,6 +392,7 @@ public partial class AuthenticationService : Node
         try
         {
             config.EraseSectionKey(currentProfile, "idToken");
+            config.Save(CachePath);
         }
         catch { }
     }
