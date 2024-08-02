@@ -304,9 +304,8 @@ public partial class UgcService : Node
         var response = await ugcClient.ExecuteAsync<UploadContentResponse>(request);
         if (response.IsSuccessful)
         {
-            var content = new Content(response.Data.Content);
             await UploadContentDataAsync(response.Data, createContentArgs.Asset, createContentArgs.Thumbnail);
-            return content;
+            return new Content(response.Data.Content);
         }
         else
         {
@@ -339,9 +338,8 @@ public partial class UgcService : Node
         var response = await ugcClient.ExecuteAsync<UploadContentResponse>(request);
         if (response.IsSuccessful)
         {
-            var content = new Content(response.Data.Content);
             await UploadContentDataAsync(response.Data, asset, thumbnail);
-            return content;
+            return new Content(response.Data.Content);
         }
         else
         {
@@ -743,42 +741,24 @@ public partial class UgcService : Node
     {
         Validate();
 
-        if (downloadContent) // just keep getting auth errors
+        var restClient = new RestClient();
+
+        if (downloadContent)
         {
-            using var httpClient = new System.Net.Http.HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-                "Bearer",
-                AuthenticationService.Instance.AccessToken
-            );
+            var request = new RestRequest(content.DownloadUrl) { RequestFormat = DataFormat.Json };
 
-            var response = await httpClient.GetAsync(content.DownloadUrl);
-            if (response.IsSuccessStatusCode)
-            {
-                content.DownloadedContent = await response.Content.ReadAsByteArrayAsync();
-            }
+            var response = await restClient.ExecuteAsync(request);
+            if (response.IsSuccessful)
+                content.DownloadedContent = response?.RawBytes ?? null;
             else
-            {
-                throw new UgcException(await response.Content.ReadAsStringAsync(), response.ReasonPhrase, null);
-            }
+                throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
         }
-
-        // if (downloadContent)
-        // {
-        //     var request = new RestRequest(content.DownloadUrl) { RequestFormat = DataFormat.Json };
-        //     GD.Print(content.DownloadUrl);
-
-        //     var response = await ugcClient.ExecuteAsync(request);
-        //     if (response.IsSuccessful)
-        //         content.DownloadedContent = response?.RawBytes ?? null;
-        //     else
-        //         throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
-        // }
 
         if (downloadThumbnail && !string.IsNullOrEmpty(content.ThumbnailUrl))
         {
             var request = new RestRequest(content.ThumbnailUrl) { RequestFormat = DataFormat.Json };
 
-            var response = await ugcClient.ExecuteAsync(request);
+            var response = await restClient.ExecuteAsync(request);
             if (response.IsSuccessful)
                 content.DownloadedThumbnail = response?.RawBytes ?? null;
             else

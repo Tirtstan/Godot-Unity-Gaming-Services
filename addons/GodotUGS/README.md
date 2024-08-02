@@ -14,7 +14,8 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 
 # Setup
 
-**In your Godot project, install RestSharp.**
+> [!IMPORTANT]  
+> **In your Godot project, install RestSharp.**
 
 ```console
 dotnet add package RestSharp
@@ -45,35 +46,47 @@ Done!
     -   Username & Password
 -   Leaderboards
 -   Cloud Save
+-   User Generated Content
+-   Friends (Not thoroughly tested)
 
 ## Planned
 
--   Economy
--   Friends
--   User Generated Content
+-   External Authentication Providers (Apple, Google, etc)
 
 # Services
 
 ## Examples
 
 -   **[Initialization](#initialization)**
+
     -   [Default](#default)
     -   [Environment](#custom-environment)
+
 -   **[Authentication](#authentication)**
+
     -   [Anonymous](#anonymous--session-sign-in)
     -   [Username & Password](#username--password)
+
 -   **[Leaderboards](#leaderboards)**
+
     -   [Adding A Score](#adding-a-score)
     -   [Getting Scores](#getting-scores)
+
 -   **[Cloud Save](#cloud-save)**
+
     -   [Saving Items](#saving-items)
     -   [Loading Items](#loading-items)
+
+-   **[User Generated Content](#user-generated-content)**
+
+    -   [Uploading Content](#uploading-content)
+    -   [Getting Specific Content](#getting-specific-content)
 
 ## Initialization
 
 ### Default
 
-```csharp
+```cs
 using Godot;
 using Unity.Services.Core;
 
@@ -102,13 +115,13 @@ private void OnInitialize(bool isInitialized)
 
 ### Custom Environment
 
-```csharp
+```cs
 using Godot;
 using Unity.Services.Core;
 
 public override async void _Ready()
 {
-    var options = new InitializationOptions();
+    var options = new InitializationOptions(); // will default to "production"
     initializationOptions.SetEnvironmentName("experimental");
 
     try
@@ -126,12 +139,13 @@ public override async void _Ready()
 
 ### Anonymous & Session Sign In
 
-```csharp
+> [!NOTE]  
+> If a player has signed in previously with a session token stored on the device, they are signed back in regardless of if they're an anonymous player or not.
+
+```cs
 using Godot;
 using Unity.Services.Authentication;
 
-// If a player has signed in previously with a session token stored on the device,
-// they are signed back in regardless of if they're an anonymous player or not.
 private async void SignInAnonymously()
 {
     try
@@ -148,7 +162,7 @@ private async void SignInAnonymously()
 
 ### Username & Password
 
-```csharp
+```cs
 using Godot;
 using Unity.Services.Authentication;
 
@@ -183,7 +197,7 @@ private async void SignIn(string username, string password)
 
 ### Adding a score
 
-```csharp
+```cs
 using Godot;
 using Unity.Services.Leaderboards;
 
@@ -203,7 +217,7 @@ private async void AddPlayerScore(string leaderboardId, double score)
 
 ### Getting scores
 
-```csharp
+```cs
 using Godot;
 using Unity.Services.Leaderboards;
 
@@ -225,7 +239,7 @@ private async void GetScores(string leaderboardId)
 
 ### Saving Items
 
-```csharp
+```cs
 using Godot;
 using Unity.Services.CloudSave;
 
@@ -258,7 +272,7 @@ private async void SaveItem()
 
 ### Loading Items
 
-```csharp
+```cs
 using Godot;
 using Unity.Services.CloudSave;
 
@@ -276,6 +290,68 @@ private async void LoadItem()
         }
     }
     catch (CloudSaveException e)
+    {
+        GD.PrintErr(e);
+    }
+}
+```
+
+## User Generated Content
+
+### Uploading Content
+
+```cs
+using Godot;
+using Unity.Services.Ugc;
+
+private async void CreateContentAsync(string name, string description, string contentPath)
+{
+    try
+    {
+        byte[] contentBytes = FileAccess.GetFileAsBytes(contentPath); // Godot path (res:// or user://)
+
+        var content = await UgcService.Instance.CreateContentAsync(
+            new CreateContentArgs(name, description, contentBytes)
+        );
+
+        GD.Print("Content ID: " + content.Id + " was uploaded!");
+    }
+    catch (UgcException e)
+    {
+        GD.PrintErr(e);
+    }
+}
+```
+
+### Getting Specific Content
+
+```cs
+using Godot;
+using Unity.Services.Ugc;
+
+private async void GetContentAsync(string contentId)
+{
+    try
+    {
+        var content = await UgcService.Instance.GetContentAsync(
+            new GetContentArgs(contentId) { DownloadContent = true, DownloadThumbnail = true }
+        );
+
+        using (var file = FileAccess.Open("res://contentDownloaded.json", FileAccess.ModeFlags.Write))
+        {
+            file.StoreBuffer(content.DownloadedContent);
+        }
+
+        using (var thumb = FileAccess.Open("res://thumbnailDownloaded.jpg", FileAccess.ModeFlags.Write))
+        {
+            thumb.StoreBuffer(content.DownloadedThumbnail);
+        }
+
+        GD.Print("Content ID: " + content.Id);
+        GD.Print("Content Name: " + content.Name);
+        GD.Print("Content Description: " + content.Description);
+    }
+    catch (UgcException e)
     {
         GD.PrintErr(e);
     }
