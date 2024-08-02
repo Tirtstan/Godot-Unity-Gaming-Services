@@ -18,7 +18,7 @@ public class EconomyPlayerBalances
     /// Note that this will NOT fire for balance changes from elsewhere not in this instance of the SDK, for example other
     /// server-side updates or updates from other devices.
     /// </summary>
-    public event Action<string> BalanceUpdated;
+    // public event Action<string> BalanceUpdated;
 
     private RestClient balancesClient;
     private const string BalancesURL = "https://economy.services.api.unity.com/v2";

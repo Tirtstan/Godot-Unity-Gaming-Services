@@ -4,10 +4,13 @@ namespace Unity.Services.Authentication;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
 using RestSharp.Authenticators;
+using Unity.Services.Authentication.Internal;
+using Unity.Services.Authentication.Internal.Models;
 using Unity.Services.Authentication.Models;
 using Unity.Services.Core;
 
@@ -18,6 +21,7 @@ public partial class AuthenticationService : Node
     public event Action SignedOut;
     public bool IsSignedIn { get; private set; }
     public string AccessToken => UserSession.IdToken;
+    internal string EnvironmentId { get; private set; }
     public string PlayerId => UserSession.User.Id;
     public string PlayerName => UserSession.User.Username;
     public string Profile => currentProfile;
@@ -28,6 +32,7 @@ public partial class AuthenticationService : Node
     private RestClient authClient;
     private ConfigFile config = new();
     private UserSession UserSession = new();
+    private AccessToken accessToken = new();
     private string SessionToken => UserSession.SessionToken;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
@@ -44,8 +49,8 @@ public partial class AuthenticationService : Node
         LoadPersistents();
         LoadCache();
 
-        SignedIn += () => IsSignedIn = true;
-        SignedOut += () => IsSignedIn = false;
+        SignedIn += OnSignIn;
+        SignedOut += OnSignOut;
     }
 
     /// <summary>
@@ -155,8 +160,8 @@ public partial class AuthenticationService : Node
     /// <summary>
     /// Sign up with a new Username/Password and add it to the current logged in user.
     /// </summary>
-    /// <exception cref="AuthenticationException">
-    /// </exception>
+    /// <exception cref="NullReferenceException"></exception>
+    /// <exception cref="AuthenticationException"></exception>
     public async Task AddUsernamePasswordAsync(string username, string password)
     {
         if (string.IsNullOrEmpty(AccessToken))
@@ -349,6 +354,18 @@ public partial class AuthenticationService : Node
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
+    private async Task GetJWKSAsync()
+    {
+        var request = new RestRequest("https://player-auth.services.api.unity.com/.well-known/jwks.json");
+        var response = await authClient.ExecuteAsync(request);
+        GD.Print(response.Content);
+
+        if (response.IsSuccessful)
+            GD.Print("Success!");
+        else
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
     /// <summary>
     /// Deletes the session token if it exists.
     /// </summary>
@@ -361,6 +378,7 @@ public partial class AuthenticationService : Node
         try
         {
             config.EraseSectionKey(currentProfile, "sessionToken");
+            config.Save(CachePath);
         }
         catch { }
     }
@@ -374,6 +392,7 @@ public partial class AuthenticationService : Node
         try
         {
             config.EraseSectionKey(currentProfile, "idToken");
+            config.Save(CachePath);
         }
         catch { }
     }
@@ -418,5 +437,23 @@ public partial class AuthenticationService : Node
 
         if (config.HasSection(Persistents))
             currentProfile = (string)config.GetValue(Persistents, "lastUsedProfile");
+    }
+
+    private void OnSignIn()
+    {
+        IsSignedIn = true;
+        accessToken = JwtDecoder.Decode<AccessToken>(AccessToken);
+        EnvironmentId = accessToken.Audience.FirstOrDefault(s => s.StartsWith("envId:"))?.Substring(6);
+    }
+
+    private void OnSignOut()
+    {
+        IsSignedIn = false;
+    }
+
+    public override void _ExitTree()
+    {
+        SignedIn -= OnSignIn;
+        SignedOut -= OnSignOut;
     }
 }

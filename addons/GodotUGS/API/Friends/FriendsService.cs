@@ -252,8 +252,8 @@ public partial class FriendsService : Node
     /// </summary>
     /// <param name="memberId">The ID of the user that sent the friend request.</param>
     /// <exception cref="ArgumentException">Represents an error that occurs when an argument is incorrectly setup.</exception>
-    /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="InvalidOperationException">Represents an error that occurs when the service has not been initialized.</exception>
+    /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="RelationshipNotFoundException">Represents an error that occurs when a relationship is not found.</exception>
     public async Task DeleteIncomingFriendRequestAsync(string memberId)
     {
@@ -272,8 +272,8 @@ public partial class FriendsService : Node
     /// </summary>
     /// <param name="memberId">The ID of the user that a friend request was sent to.</param>
     /// <exception cref="ArgumentException">Represents an error that occurs when an argument is incorrectly setup.</exception>
-    /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="InvalidOperationException">Represents an error that occurs when the service has not been initialized.</exception>
+    /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="RelationshipNotFoundException">Represents an error that occurs when a relationship is not found.</exception>
     public async Task DeleteOutgoingFriendRequestAsync(string memberId)
     {
@@ -292,8 +292,8 @@ public partial class FriendsService : Node
     /// </summary>
     /// <param name="memberId">The ID of the friend to be deleted.</param>
     /// <exception cref="ArgumentException">Represents an error that occurs when an argument is incorrectly setup.</exception>
-    /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="InvalidOperationException">Represents an error that occurs when the service has not been initialized.</exception>
+    /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="RelationshipNotFoundException">Represents an error that occurs when a relationship is not found.</exception>
     public async Task DeleteFriendAsync(string memberId)
     {
@@ -312,8 +312,8 @@ public partial class FriendsService : Node
     /// </summary>
     /// <param name="memberId">The ID of the user that will be unblocked.</param>
     /// <exception cref="ArgumentException">Represents an error that occurs when an argument is incorrectly setup.</exception>
-    /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="InvalidOperationException">Represents an error that occurs when the service has not been initialized.</exception>
+    /// <exception cref="FriendsServiceException">An exception containing the HttpClientResponse with headers, response code, and string of error.</exception>
     /// <exception cref="RelationshipNotFoundException">Represents an error that occurs when a relationship is not found.</exception>
     public async Task DeleteBlockAsync(string memberId)
     {
