@@ -4,7 +4,7 @@ Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solut
 
 Feel free to use this as a jumping point to create a bigger, final version or contribute directly.
 
-# Architecture
+## Architecture
 
 Using the wonderful **[RestSharp](https://github.com/RestSharp/RestSharp)** to make this process a little easier.
 
@@ -12,34 +12,47 @@ I have tried to keep the implementation of the SDK as similar to Unity's version
 
 Scripts are communicated by singletons like in Unity. I use one initial Godot Autoload to instantiated all child services.
 
-# Setup
+## Setup
+
+### Download
+
+Get the addon from the **[Godot Asset Library](https://godotengine.org/asset-library/asset/3147)** or through **[GitHub Releases](https://github.com/Tirtstan/Godot-Unity-Gaming-Services/releases/)** (up to date quicker).
+
+If through GitHub, unzip the folder and add to your project's `res://addons`.
+
+### Install
 
 > [!IMPORTANT]  
 > **In your Godot project, install RestSharp.**
+>
+> ```console
+> dotnet add package RestSharp
+> ```
 
-```console
-dotnet add package RestSharp
-```
+**To use GodotUGS, you have to provide your game's service project ID. Here's how you can:**
 
-**To use GodotUGS, you have to provide your game's project ID. Here's how you can:**
+-   **In Your Browser:**
 
--   In Your Browser:
     -   Go to **[Unity Gaming Services](https://cloud.unity.com/home)** and login or create an account.
     -   At the top, choose a project or create one.
-    -   Go to the dashboard of the project (on the side).
+    -   Go to the dashboard of the project (on the left side).
     -   Click on the Project settings button in the top right.
     -   Copy the project ID.
--   In Godot:
-    -   Locate the example APIResource in **"res://addons/GodotUGS/Resources/APIResource_Example.tres"**.
+
+-   **In Godot:**
+
+    -   Locate the example `APIResource` in `res://addons/GodotUGS/Resources/APIResource_Example.tres`.
     -   Fill in the project ID field.
-    -   Locate the GodotUGS autoload in **"res://addons/GodotUGS/Autoloads/GodotUGS.tscn"** and open it.
-    -   In the UnityServices node, provide the APIResource file through the inspector.
+    -   Locate the GodotUGS autoload in `res://addons/GodotUGS/Autoloads/GodotUGS.tscn`and open it.
+    -   In the `UnityServices Node`, provide the `APIResource` file through the inspector.
+
+Go to `Project > Project Settings > Plugins` and enable GodotUGS.
 
 Done!
 
-# Unity Gaming Services
+## Unity Gaming Services
 
-## Supported
+### Supported
 
 -   Authentication
     -   Anonymous/Session
@@ -49,13 +62,14 @@ Done!
 -   User Generated Content
 -   Friends (Not thoroughly tested)
 
-## Planned
+### Planned
 
 -   External Authentication Providers (Apple, Google, etc)
+-   Improved Friends Support (Events & Messaging)
 
-# Services
+## Services
 
-## Examples
+### Examples
 
 -   **[Initialization](#initialization)**
 
@@ -82,9 +96,12 @@ Done!
     -   [Uploading Content](#uploading-content)
     -   [Getting Specific Content](#getting-specific-content)
 
-## Initialization
+### Initialization
 
-### Default
+#### Default
+
+> [!NOTE]  
+> `InitializeAsync` isn't necessarily required to call (unlike Unity's) to use UGS but is highly recommended.
 
 ```cs
 using Godot;
@@ -96,7 +113,7 @@ public override async void _Ready()
 
     try
     {
-        await UnityServices.Instance.InitializeAsync(); // required to do anything with UGS
+        await UnityServices.Instance.InitializeAsync();
     }
     catch (System.Exception e)
     {
@@ -113,7 +130,10 @@ private void OnInitialize(bool isInitialized)
 }
 ```
 
-### Custom Environment
+#### Custom Environment
+
+> [!NOTE]  
+> `InitializationOptions` will default to the "production" environment.
 
 ```cs
 using Godot;
@@ -121,7 +141,7 @@ using Unity.Services.Core;
 
 public override async void _Ready()
 {
-    var options = new InitializationOptions(); // will default to "production"
+    var options = new InitializationOptions();
     initializationOptions.SetEnvironmentName("experimental");
 
     try
@@ -135,9 +155,9 @@ public override async void _Ready()
 }
 ```
 
-## Authentication
+### Authentication
 
-### Anonymous & Session Sign In
+#### Anonymous & Session Sign In
 
 > [!NOTE]  
 > If a player has signed in previously with a session token stored on the device, they are signed back in regardless of if they're an anonymous player or not.
@@ -160,7 +180,7 @@ private async void SignInAnonymously()
 }
 ```
 
-### Username & Password
+#### Username & Password
 
 ```cs
 using Godot;
@@ -193,9 +213,9 @@ private async void SignIn(string username, string password)
 }
 ```
 
-## Leaderboards
+### Leaderboards
 
-### Adding a score
+#### Adding a score
 
 ```cs
 using Godot;
@@ -215,7 +235,7 @@ private async void AddPlayerScore(string leaderboardId, double score)
 }
 ```
 
-### Getting scores
+#### Getting scores
 
 ```cs
 using Godot;
@@ -235,9 +255,9 @@ private async void GetScores(string leaderboardId)
 }
 ```
 
-## Cloud Save
+### Cloud Save
 
-### Saving Items
+#### Saving Items
 
 ```cs
 using Godot;
@@ -256,8 +276,8 @@ private async void SaveItem()
                     "items",
                     new List<Item>
                     {
-                        new Item(1, "Sword", "A sharp sword", 10.5f),
-                        new Item(2, "Shield", "A strong shield", 15.5f)
+                        new Item(id: 1, name: "Sword", description: "A sharp sword"),
+                        new Item(id: 2, name: "Shield", description: "A strong shield")
                     }
                 }
             }
@@ -270,7 +290,7 @@ private async void SaveItem()
 }
 ```
 
-### Loading Items
+#### Loading Items
 
 ```cs
 using Godot;
@@ -296,9 +316,13 @@ private async void LoadItem()
 }
 ```
 
-## User Generated Content
+### User Generated Content
 
-### Uploading Content
+#### Uploading Content
+
+> [!NOTE]  
+> `FileAccess.GetFileAsBytes` is a `Godot` method, use `res://` or `user://` type paths.  
+> Alternatively, you can use `System.IO.File.ReadAllBytes` and provide an absolute path optionally with `Path.Combine`.
 
 ```cs
 using Godot;
@@ -308,7 +332,7 @@ private async void CreateContentAsync(string name, string description, string co
 {
     try
     {
-        byte[] contentBytes = FileAccess.GetFileAsBytes(contentPath); // Godot path (res:// or user://)
+        byte[] contentBytes = FileAccess.GetFileAsBytes(contentPath);
 
         var content = await UgcService.Instance.CreateContentAsync(
             new CreateContentArgs(name, description, contentBytes)
@@ -323,7 +347,7 @@ private async void CreateContentAsync(string name, string description, string co
 }
 ```
 
-### Getting Specific Content
+#### Getting Specific Content
 
 ```cs
 using Godot;
