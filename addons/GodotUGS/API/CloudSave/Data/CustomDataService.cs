@@ -1,6 +1,5 @@
 namespace Unity.Services.CloudSave.Internal;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -14,7 +13,46 @@ using Unity.Services.CloudSave.Internal.Models;
 using Unity.Services.CloudSave.Models;
 using Unity.Services.Core;
 
-public class CustomDataService
+public interface ICustomDataService
+{
+    /// <summary>
+    /// Returns all keys stored in Cloud Save for the specified custom data ID.
+    /// Throws a CloudSaveException with a reason code and explanation of what happened.
+    /// </summary>
+    /// <returns>A list of keys and their metadata as stored in the server for the logged in player.</returns>
+    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
+    public Task<List<ItemKey>> ListAllKeysAsync(string customDataID);
+
+    /// <summary>
+    /// Downloads items from Cloud Save for the custom data ID and keys provided.
+    /// There is no client validation in place.
+    /// Throws a CloudSaveException with a reason code and explanation of what happened.
+    /// </summary>
+    /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server</returns>
+    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
+    public Task<Dictionary<string, Item>> LoadAsync(string customDataID, ISet<string> keys);
+
+    /// <summary>
+    /// Downloads all items from Cloud Save for the custom data ID.
+    /// There is no client validation in place.
+    /// Throws a CloudSaveException with a reason code and explanation of what happened.
+    /// </summary>
+    /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server</returns>
+    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
+    public Task<Dictionary<string, Item>> LoadAllAsync(string customDataID);
+
+    /// <summary>
+    /// Queries indexed custom data from Cloud Save, and returns the requested keys for matching items.
+    /// Throws a CloudSaveException with a reason code and explanation of what happened.
+    /// </summary>
+    /// <param name="query">The query conditions to apply, including field filters and sort orders</param>
+    /// <param name="options">Options to modify the behavior of the method</param>
+    /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server including their write locks</returns>
+    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
+    public Task<List<EntityData>> QueryAsync(Query query);
+}
+
+public class CustomDataService : ICustomDataService
 {
     private RestClient customDataClient;
     private const string CustomDataURL = "https://cloud-save.services.api.unity.com/v1/data";
@@ -38,12 +76,6 @@ public class CustomDataService
         customDataClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
     }
 
-    /// <summary>
-    /// Returns all keys stored in Cloud Save for the specified custom data ID.
-    /// Throws a CloudSaveException with a reason code and explanation of what happened.
-    /// </summary>
-    /// <returns>A list of keys and their metadata as stored in the server for the logged in player.</returns>
-    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
     public async Task<List<ItemKey>> ListAllKeysAsync(string customDataID)
     {
         var request = new RestRequest($"/projects/{ProjectId}/custom/{customDataID}/keys")
@@ -58,13 +90,6 @@ public class CustomDataService
             throw new CloudSaveException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Downloads items from Cloud Save for the custom data ID and keys provided.
-    /// There is no client validation in place.
-    /// Throws a CloudSaveException with a reason code and explanation of what happened.
-    /// </summary>
-    /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server</returns>
-    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
     public async Task<Dictionary<string, Item>> LoadAsync(string customDataID, ISet<string> keys)
     {
         var request = new RestRequest($"/projects/{ProjectId}/custom/{customDataID}/items")
@@ -91,13 +116,6 @@ public class CustomDataService
         }
     }
 
-    /// <summary>
-    /// Downloads all items from Cloud Save for the custom data ID.
-    /// There is no client validation in place.
-    /// Throws a CloudSaveException with a reason code and explanation of what happened.
-    /// </summary>
-    /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server</returns>
-    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
     public async Task<Dictionary<string, Item>> LoadAllAsync(string customDataID)
     {
         var request = new RestRequest($"/projects/{ProjectId}/custom/{customDataID}/items")
@@ -120,14 +138,6 @@ public class CustomDataService
         }
     }
 
-    /// <summary>
-    /// Queries indexed custom data from Cloud Save, and returns the requested keys for matching items.
-    /// Throws a CloudSaveException with a reason code and explanation of what happened.
-    /// </summary>
-    /// <param name="query">The query conditions to apply, including field filters and sort orders</param>
-    /// <param name="options">Options to modify the behavior of the method</param>
-    /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server including their write locks</returns>
-    /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
     public async Task<List<EntityData>> QueryAsync(Query query)
     {
         var request = new RestRequest($"/projects/{ProjectId}/custom/query", Method.Post).AddJsonBody(query);
