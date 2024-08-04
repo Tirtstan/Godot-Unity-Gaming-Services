@@ -1,10 +1,10 @@
+namespace Unity.Services.Leaderboards.Models;
+
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 // all classes provided by Unity
-
-namespace Unity.Services.Leaderboards.Models;
 
 /// <summary>
 /// LeaderboardEntry model

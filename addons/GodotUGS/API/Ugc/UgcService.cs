@@ -2,8 +2,6 @@ namespace Unity.Services.Ugc;
 
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -16,11 +14,248 @@ using Unity.Services.Core;
 using Unity.Services.Ugc.Internal.Models;
 using Unity.Services.Ugc.Models;
 
-public partial class UgcService : Node
+public interface IUgcService
+{
+    /// <summary>
+    /// Get all content from a project specific environment.
+    /// Content with visibility set to Hidden or with ModerationStatus different from Approved won't be returned.
+    /// Deleted contents and ones that haven't finished uploading won't be returned either.
+    /// </summary>
+    /// <param name="getContentsArgs">The details of the search request</param>
+    /// <returns>A list of contents from the environment with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<PagedResults<Content>> GetContentsAsync(GetContentsArgs getContentsArgs = null);
+
+    /// <summary>
+    /// Get all content created by the current signed in player
+    /// </summary>
+    /// <param name="getPlayerContentsArgs">The details of the search request</param>
+    /// <returns>A list of contents from the environment with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<PagedResults<Content>> GetPlayerContentsAsync(GetPlayerContentsArgs getPlayerContentsArgs = null);
+
+    /// <summary>
+    /// Get content by <see cref="ContentTrendType"/>
+    /// </summary>
+    /// <param name="getContentTrendsArgs">The details of the search request</param>
+    /// <returns>A list of contents of this trend type, with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<PagedResults<Content>> GetContentTrendsAsync(GetContentTrendsArgs getContentTrendsArgs = null);
+
+    /// <summary>
+    /// Get content versions of a content.
+    /// </summary>
+    /// <param name="getContentVersionsArgs">Contains all the parameters of the request</param>
+    /// <returns>The list of versions associated with the content with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<PagedResults<ContentVersion>> GetContentVersionsAsync(GetContentVersionsArgs getContentVersionsArgs);
+
+    /// <summary>
+    /// Get a specific content.
+    /// </summary>
+    /// <param name="getContentArgs">Contains all the parameters of the request</param>
+    /// <returns>The requested content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Content> GetContentAsync(GetContentArgs getContentArgs);
+
+    /// <summary>
+    /// Create a new content in a project environment
+    /// </summary>
+    /// <param name="createContentArgs">Contains all the parameters of the request</param>
+    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Content> CreateContentAsync(CreateContentArgs createContentArgs);
+
+    /// <summary>
+    /// Create a new version of a content.
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <param name="asset">The stream containing the binary payload of the content</param>
+    /// <param name="thumbnail">The stream containing the image representing the content</param>
+    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Content> CreateContentVersionAsync(string contentId, byte[] asset, byte[] thumbnail = null);
+
+    /// <summary>
+    /// Delete a content
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>A task</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task DeleteContentAsync(string contentId);
+
+    /// <summary>
+    /// Get a list of tags associated with the project
+    /// </summary>
+    /// <returns>A list of tags</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<List<Tag>> GetTagsAsync();
+
+    /// <summary>
+    /// Get the rating of a content.
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>The rating of the content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<ContentUserRating> GetUserContentRatingAsync(string contentId);
+
+    /// <summary>
+    /// Submit a user rating of a content
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <param name="rating">The rating value</param>
+    /// <returns>The rating</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<ContentUserRating> SubmitUserContentRatingAsync(string contentId, float rating);
+
+    /// <summary>
+    /// Report a content
+    /// </summary>
+    /// <param name="reportContentArgs">The details of the report request</param>
+    /// <returns>The reported content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Content> ReportContentAsync(ReportContentArgs reportContentArgs);
+
+    /// <summary>
+    /// Approve content that needed moderation.
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>The approved content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Content> ApproveContentAsync(string contentId);
+
+    /// <summary>
+    /// Reject content that needed moderation.
+    /// </summary>
+    /// <param name="reportContentArgs">The details of the report reject</param>
+    /// <returns>The rejected content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Content> RejectContentAsync(ReportContentArgs reportContentArgs);
+
+    /// <summary>
+    /// Search for content that needs moderation in the project.
+    /// </summary>
+    /// <param name="searchContentModerationArgs">The details of the search request</param>
+    /// <returns>A list of contents requiring moderation with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<PagedResults<Content>> SearchContentModerationAsync(
+        SearchContentModerationArgs searchContentModerationArgs
+    );
+
+    /// <summary>
+    /// Update a specific content details.
+    /// </summary>
+    /// <param name="updateContentDetailsArgs">The details of the update request</param>
+    /// <returns>The updated content</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Content> UpdateContentDetailsAsync(UpdateContentDetailsArgs updateContentDetailsArgs);
+
+    /// <summary>
+    /// Subscribe to the content for the current user
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>The created subscription</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Subscription> CreateSubscriptionAsync(string contentId);
+
+    /// <summary>
+    /// Unsubscribe to the content for the current user
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>A task</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task DeleteSubscriptionAsync(string contentId);
+
+    /// <summary>
+    /// Get all subscriptions of the current user
+    /// </summary>
+    /// <param name="getSubscriptionsArgs">The details of the search request</param>
+    /// <returns>A list of subscriptions of the current user with pagination information</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<PagedResults<Subscription>> GetSubscriptionsAsync(GetSubscriptionsArgs getSubscriptionsArgs);
+
+    /// <summary>
+    /// Check if the current user is subscribed to the content
+    /// </summary>
+    /// <param name="contentId">The content identifier</param>
+    /// <returns>true if the content is subscribed to, false otherwise</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<bool> IsSubscribedToAsync(string contentId);
+
+    /// <summary>
+    /// Download data and/or thumbnail of a content
+    /// </summary>
+    /// <param name="content">The content that will have its data downloaded</param>
+    /// <param name="downloadContent">True if we want to download the content's data</param>
+    /// <param name="downloadThumbnail">True if we want to download the content's thumbnail</param>
+    /// <returns>The downloaded data will be put in the `content` parameter so this call returns nothing.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task DownloadContentDataAsync(Content content, bool downloadContent, bool downloadThumbnail);
+
+    /// <summary>
+    /// Create a new representation of a content
+    /// </summary>
+    /// <param name="createRepresentationArgs">Contains all the parameters of the request</param>
+    /// <returns>The created representation</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Representation> CreateRepresentationAsync(CreateRepresentationArgs createRepresentationArgs);
+
+    /// <summary>
+    /// Get a specific representation of a content
+    /// </summary>
+    /// <param name="getRepresentationArgs">Contains all the parameters of the request</param>
+    /// <returns>The representation</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Representation> GetRepresentationAsync(GetRepresentationArgs getRepresentationArgs);
+
+    /// <summary>
+    /// Update a specific representation.
+    /// </summary>
+    /// <param name="updateRepresentationArgs">The details of the update request</param>
+    /// <returns>The updated representation</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task<Representation> UpdateRepresentationAsync(UpdateRepresentationArgs updateRepresentationArgs);
+
+    /// <summary>
+    /// Delete representation
+    /// </summary>
+    /// <param name="deleteRepresentationArgs">The id of the representation to delete</param>
+    /// <returns>A task</returns>
+    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
+    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
+    public Task DeleteRepresentationAsync(DeleteRepresentationArgs deleteRepresentationArgs);
+}
+
+public partial class UgcService : Node, IUgcService
 {
     public static UgcService Instance { get; private set; }
 
     private RestClient ugcClient;
+    private RestClient downloadClient = new();
     private const string UgcURL = "https://ugc.services.api.unity.com";
     private static string ProjectId => UnityServices.Instance.ProjectId;
     private static string PlayerId => AuthenticationService.Instance.PlayerId;
@@ -48,15 +283,6 @@ public partial class UgcService : Node
         ugcClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
     }
 
-    /// <summary>
-    /// Get all content from a project specific environment.
-    /// Content with visibility set to Hidden or with ModerationStatus different from Approved won't be returned.
-    /// Deleted contents and ones that haven't finished uploading won't be returned either.
-    /// </summary>
-    /// <param name="getContentsArgs">The details of the search request</param>
-    /// <returns>A list of contents from the environment with pagination information</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<PagedResults<Content>> GetContentsAsync(GetContentsArgs getContentsArgs = null)
     {
         Validate();
@@ -107,14 +333,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Get all content created by the current signed in player
-    /// </summary>
-    /// <param name="getPlayerContentsArgs">The details of the search request</param>
-    /// <returns>A list of contents from the environment with pagination information</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
-
     public async Task<PagedResults<Content>> GetPlayerContentsAsync(GetPlayerContentsArgs getPlayerContentsArgs = null)
     {
         Validate();
@@ -156,13 +374,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Get content by <see cref="ContentTrendType"/>
-    /// </summary>
-    /// <param name="getContentTrendsArgs">The details of the search request</param>
-    /// <returns>A list of contents of this trend type, with pagination information</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<PagedResults<Content>> GetContentTrendsAsync(GetContentTrendsArgs getContentTrendsArgs = null)
     {
         Validate();
@@ -196,13 +407,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Get content versions of a content.
-    /// </summary>
-    /// <param name="getContentVersionsArgs">Contains all the parameters of the request</param>
-    /// <returns>The list of versions associated with the content with pagination information</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<PagedResults<ContentVersion>> GetContentVersionsAsync(
         GetContentVersionsArgs getContentVersionsArgs
     )
@@ -241,13 +445,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Get a specific content.
-    /// </summary>
-    /// <param name="getContentArgs">Contains all the parameters of the request</param>
-    /// <returns>The requested content</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Content> GetContentAsync(GetContentArgs getContentArgs)
     {
         Validate();
@@ -272,13 +469,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Create a new content in a project environment
-    /// </summary>
-    /// <param name="createContentArgs">Contains all the parameters of the request</param>
-    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Content> CreateContentAsync(CreateContentArgs createContentArgs)
     {
         Validate();
@@ -313,15 +503,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Create a new version of a content.
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <param name="asset">The stream containing the binary payload of the content</param>
-    /// <param name="thumbnail">The stream containing the image representing the content</param>
-    /// <returns>The content that will be eventually available once the upload has been uploaded.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Content> CreateContentVersionAsync(string contentId, byte[] asset, byte[] thumbnail = null)
     {
         Validate();
@@ -347,13 +528,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Delete a content
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <returns>A task</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task DeleteContentAsync(string contentId)
     {
         Validate();
@@ -371,12 +545,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Get a list of tags associated with the project
-    /// </summary>
-    /// <returns>A list of tags</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<List<Tag>> GetTagsAsync()
     {
         Validate();
@@ -393,13 +561,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Get the rating of a content.
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <returns>The rating of the content</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<ContentUserRating> GetUserContentRatingAsync(string contentId)
     {
         Validate();
@@ -418,14 +579,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Submit a user rating of a content
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <param name="rating">The rating value</param>
-    /// <returns>The rating</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<ContentUserRating> SubmitUserContentRatingAsync(string contentId, float rating)
     {
         Validate();
@@ -442,13 +595,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Report a content
-    /// </summary>
-    /// <param name="reportContentArgs">The details of the report request</param>
-    /// <returns>The reported content</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Content> ReportContentAsync(ReportContentArgs reportContentArgs)
     {
         Validate();
@@ -465,13 +611,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Approve content that needed moderation.
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <returns>The approved content</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Content> ApproveContentAsync(string contentId)
     {
         Validate();
@@ -491,13 +630,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Reject content that needed moderation.
-    /// </summary>
-    /// <param name="reportContentArgs">The details of the report reject</param>
-    /// <returns>The rejected content</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Content> RejectContentAsync(ReportContentArgs reportContentArgs)
     {
         Validate();
@@ -514,13 +646,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Search for content that needs moderation in the project.
-    /// </summary>
-    /// <param name="searchContentModerationArgs">The details of the search request</param>
-    /// <returns>A list of contents requiring moderation with pagination information</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<PagedResults<Content>> SearchContentModerationAsync(
         SearchContentModerationArgs searchContentModerationArgs
     )
@@ -565,13 +690,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Update a specific content details.
-    /// </summary>
-    /// <param name="updateContentDetailsArgs">The details of the update request</param>
-    /// <returns>The updated content</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Content> UpdateContentDetailsAsync(UpdateContentDetailsArgs updateContentDetailsArgs)
     {
         Validate();
@@ -599,13 +717,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Subscribe to the content for the current user
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <returns>The created subscription</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Subscription> CreateSubscriptionAsync(string contentId)
     {
         Validate();
@@ -626,13 +737,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Unsubscribe to the content for the current user
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <returns>A task</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task DeleteSubscriptionAsync(string contentId)
     {
         Validate();
@@ -647,13 +751,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Get all subscriptions of the current user
-    /// </summary>
-    /// <param name="getSubscriptionsArgs">The details of the search request</param>
-    /// <returns>A list of subscriptions of the current user with pagination information</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<PagedResults<Subscription>> GetSubscriptionsAsync(GetSubscriptionsArgs getSubscriptionsArgs)
     {
         Validate();
@@ -694,13 +791,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Check if the current user is subscribed to the content
-    /// </summary>
-    /// <param name="contentId">The content identifier</param>
-    /// <returns>true if the content is subscribed to, false otherwise</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<bool> IsSubscribedToAsync(string contentId)
     {
         Validate();
@@ -728,26 +818,15 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Download data and/or thumbnail of a content
-    /// </summary>
-    /// <param name="content">The content that will have its data downloaded</param>
-    /// <param name="downloadContent">True if we want to download the content's data</param>
-    /// <param name="downloadThumbnail">True if we want to download the content's thumbnail</param>
-    /// <returns>The downloaded data will be put in the `content` parameter so this call returns nothing.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task DownloadContentDataAsync(Content content, bool downloadContent, bool downloadThumbnail)
     {
         Validate();
-
-        var restClient = new RestClient();
 
         if (downloadContent)
         {
             var request = new RestRequest(content.DownloadUrl) { RequestFormat = DataFormat.Json };
 
-            var response = await restClient.ExecuteAsync(request);
+            var response = await downloadClient.ExecuteAsync(request);
             if (response.IsSuccessful)
                 content.DownloadedContent = response?.RawBytes ?? null;
             else
@@ -758,7 +837,7 @@ public partial class UgcService : Node
         {
             var request = new RestRequest(content.ThumbnailUrl) { RequestFormat = DataFormat.Json };
 
-            var response = await restClient.ExecuteAsync(request);
+            var response = await downloadClient.ExecuteAsync(request);
             if (response.IsSuccessful)
                 content.DownloadedThumbnail = response?.RawBytes ?? null;
             else
@@ -810,13 +889,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Create a new representation of a content
-    /// </summary>
-    /// <param name="createRepresentationArgs">Contains all the parameters of the request</param>
-    /// <returns>The created representation</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Representation> CreateRepresentationAsync(CreateRepresentationArgs createRepresentationArgs)
     {
         Validate();
@@ -833,13 +905,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Get a specific representation of a content
-    /// </summary>
-    /// <param name="getRepresentationArgs">Contains all the parameters of the request</param>
-    /// <returns>The representation</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Representation> GetRepresentationAsync(GetRepresentationArgs getRepresentationArgs)
     {
         Validate();
@@ -858,13 +923,6 @@ public partial class UgcService : Node
             throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
-    /// <summary>
-    /// Update a specific representation.
-    /// </summary>
-    /// <param name="updateRepresentationArgs">The details of the update request</param>
-    /// <returns>The updated representation</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task<Representation> UpdateRepresentationAsync(UpdateRepresentationArgs updateRepresentationArgs)
     {
         Validate();
@@ -1064,13 +1122,6 @@ public partial class UgcService : Node
         }
     }
 
-    /// <summary>
-    /// Delete representation
-    /// </summary>
-    /// <param name="deleteRepresentationArgs">The id of the representation to delete</param>
-    /// <returns>A task</returns>
-    /// <exception cref="InvalidOperationException">Thrown if user is not signed in.</exception>
-    /// <exception cref="UgcException">Thrown if request is unsuccessful due to UGC Service specific issues.</exception>
     public async Task DeleteRepresentationAsync(DeleteRepresentationArgs deleteRepresentationArgs)
     {
         Validate();
