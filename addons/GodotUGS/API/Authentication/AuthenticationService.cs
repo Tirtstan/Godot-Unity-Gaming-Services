@@ -5,10 +5,12 @@ namespace Unity.Services.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
 using RestSharp.Authenticators;
+using RestSharp.Serializers.Json;
 using Unity.Services.Authentication.Internal;
 using Unity.Services.Authentication.Internal.Models;
 using Unity.Services.Authentication.Models;
@@ -85,6 +87,36 @@ public interface IAuthenticationService
     /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
     /// </exception>
     public Task SignInAnonymouslyAsync();
+
+    /// <summary>
+    /// Sign in using Apple's ID token.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="idToken">Apple's ID token</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.</exception>
+    public Task SignInWithAppleAsync(string idToken, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Apple account using Apple's ID token.
+    /// </summary>
+    /// <param name="idToken">Apple's ID token</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithAppleAsync(string idToken, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Apple account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkAppleAsync();
 
     /// <summary>
     /// Sign in using Username and Password credentials.
@@ -197,22 +229,22 @@ public partial class AuthenticationService : Node, IAuthenticationService
     public event Action SignedIn;
     public event Action SignedOut;
     public bool IsSignedIn { get; private set; }
-    public string AccessToken => UserSession.IdToken;
+    public string AccessToken => SignInResponse.IdToken;
     internal string EnvironmentId { get; private set; }
-    public string PlayerId => UserSession.User.Id;
-    public string PlayerName => UserSession.User.Username;
+    public string PlayerId => SignInResponse.User.Id;
+    public string PlayerName => SignInResponse.User.Username;
     public string Profile => currentProfile;
     public bool SessionTokenExists => !string.IsNullOrEmpty(SessionToken);
     public string LastNotificationDate =>
-        DateTime.UnixEpoch.AddMilliseconds(UserSession.LastNotificationDate).ToString();
+        DateTime.UnixEpoch.AddMilliseconds(SignInResponse.LastNotificationDate).ToString();
     public PlayerInfo PlayerInfo { get; private set; }
     public List<Notification> Notifications { get; private set; }
 
     private RestClient authClient;
     private ConfigFile config = new();
-    private UserSession UserSession = new();
+    private SignInResponse SignInResponse = new();
     private AccessToken accessToken = new();
-    private string SessionToken => UserSession.SessionToken;
+    private string SessionToken => SignInResponse.SessionToken;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
     private const string Persistents = "Persistents";
@@ -222,7 +254,11 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
     public override void _Ready()
     {
-        authClient = new RestClient(AuthURL);
+        var options = new RestClientOptions(AuthURL);
+        authClient = new RestClient(
+            options,
+            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { IncludeFields = true })
+        );
         authClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
 
         LoadPersistents();
@@ -246,10 +282,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         var request = new RestRequest("/authentication/anonymous", Method.Post) { RequestFormat = DataFormat.Json };
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -263,10 +299,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
     {
         var request = new RestRequest("/authentication/session-token", Method.Post).AddJsonBody(new { sessionToken });
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -276,16 +312,47 @@ public partial class AuthenticationService : Node, IAuthenticationService
         }
     }
 
+    public async Task SignInWithAppleAsync(string idToken, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Apple,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Apple,
+                Token = idToken,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithAppleAsync(string idToken, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Apple,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Apple,
+                Token = idToken,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkAppleAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Apple);
+    }
+
     public async Task SignInWithUsernamePasswordAsync(string username, string password)
     {
         var request = new RestRequest("/authentication/usernamepassword/sign-in", Method.Post).AddJsonBody(
             new { username, password }
         );
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -301,10 +368,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
             new { username, password }
         );
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -326,10 +393,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
         );
         request.Authenticator = new JwtAuthenticator(AccessToken);
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -346,10 +413,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
         );
         request.Authenticator = new JwtAuthenticator(AccessToken);
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -369,7 +436,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         var response = await authClient.ExecuteAsync(request);
         if (!response.IsSuccessful)
-            throw response.ErrorException;
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
 
         SignOut(true);
     }
@@ -382,18 +449,21 @@ public partial class AuthenticationService : Node, IAuthenticationService
             ClearSessionToken();
         }
 
-        UserSession = new UserSession();
+        SignInResponse = new SignInResponse();
         SignedOut?.Invoke();
     }
 
     public async Task<PlayerInfo> GetPlayerInfoAsync()
     {
-        var request = new RestRequest($"/users/{PlayerId}").AddHeader("Authorization", $"Bearer {AccessToken}");
-        request.RequestFormat = DataFormat.Json;
+        var request = new RestRequest($"/users/{PlayerId}")
+        {
+            RequestFormat = DataFormat.Json,
+            Authenticator = new JwtAuthenticator(AccessToken)
+        };
 
-        var response = await authClient.ExecuteAsync<PlayerInfo>(request);
+        var response = await authClient.ExecuteAsync<PlayerInfoResponse>(request);
         if (response.IsSuccessful)
-            return PlayerInfo = response.Data;
+            return PlayerInfo = new PlayerInfo(response.Data);
         else
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
@@ -499,6 +569,57 @@ public partial class AuthenticationService : Node, IAuthenticationService
         catch { }
     }
 
+    private async Task SignInWithExternalTokenAsync(string idProvider, SignInWithExternalTokenRequest tokenRequest)
+    {
+        var request = new RestRequest($"/authentication/external-token/{idProvider}", Method.Post).AddJsonBody(
+            tokenRequest
+        );
+
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
+        if (response.IsSuccessful)
+        {
+            SignInResponse = response.Data;
+            SaveCache();
+            SignedIn?.Invoke();
+        }
+        else
+        {
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    private async Task LinkWithExternalTokenAsync(string idProvider, LinkWithExternalTokenRequest tokenRequest)
+    {
+        var request = new RestRequest($"/authentication/link/{idProvider}", Method.Post)
+        {
+            Authenticator = new JwtAuthenticator(AccessToken)
+        }.AddJsonBody(tokenRequest);
+
+        var response = await authClient.ExecuteAsync<LinkResponse>(request);
+        if (response.IsSuccessful)
+        {
+            PlayerInfo?.AddExternalIdentity(
+                response.Data.User?.ExternalIds?.FirstOrDefault(x => x.ProviderId == tokenRequest.IdProvider)
+            );
+        }
+        else
+        {
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    private async Task UnlinkExternalTokenAsync(string idProvider)
+    {
+        var request = new RestRequest($"/authentication/unlink/{idProvider}", Method.Post)
+        {
+            Authenticator = new JwtAuthenticator(AccessToken)
+        }.AddJsonBody(new { externalId = PlayerInfo?.GetIdentityId(idProvider) });
+
+        var response = await authClient.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
     private void SaveCache()
     {
         config.SetValue(currentProfile, "idToken", AccessToken);
@@ -513,10 +634,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
         if (error != Error.Ok)
             return;
 
-        UserSession = new UserSession();
+        SignInResponse = new SignInResponse();
         if (config.HasSection(currentProfile))
         {
-            UserSession = new UserSession
+            SignInResponse = new SignInResponse
             {
                 IdToken = (string)config.GetValue(currentProfile, "idToken"),
                 SessionToken = (string)config.GetValue(currentProfile, "sessionToken")

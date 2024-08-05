@@ -207,7 +207,7 @@ public partial class LeaderboardsService : Node, ILeaderboardsService
         };
         leaderboardsClient = new RestClient(
             options,
-            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
+            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { IncludeFields = true })
         );
 
         leaderboardsClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);

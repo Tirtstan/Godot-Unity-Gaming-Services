@@ -70,7 +70,7 @@ public class CustomDataService : ICustomDataService
         };
         customDataClient = new RestClient(
             options,
-            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
+            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { IncludeFields = true })
         );
 
         customDataClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);

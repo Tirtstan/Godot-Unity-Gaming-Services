@@ -105,7 +105,7 @@ public class PlayerFilesService : IPlayerFilesService
         };
         playerFilesClient = new RestClient(
             options,
-            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
+            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { IncludeFields = true })
         );
 
         playerFilesClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);

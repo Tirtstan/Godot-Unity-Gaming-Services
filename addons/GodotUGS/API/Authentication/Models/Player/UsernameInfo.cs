@@ -1,4 +1,4 @@
-namespace Unity.Services.Authentication.Models;
+namespace Unity.Services.Authentication.Internal.Models;
 
 using System.Text.Json.Serialization;
 

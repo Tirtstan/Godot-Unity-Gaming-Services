@@ -220,7 +220,7 @@ public partial class FriendsService : Node, IFriendsService
         };
         friendsClient = new RestClient(
             options,
-            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
+            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { IncludeFields = true })
         );
 
         friendsClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
