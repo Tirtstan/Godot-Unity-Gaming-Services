@@ -119,6 +119,124 @@ public interface IAuthenticationService
     public Task UnlinkAppleAsync();
 
     /// <summary>
+    /// Sign in using AppleGameCenter's teamPlayerId.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="signature">AppleGameCenter's signature</param>
+    /// <param name="teamPlayerId">AppleGameCenter's teamPlayerId</param>
+    /// <param name="publicKeyURL">AppleGameCenter's publicKeyURL</param>
+    /// <param name="salt">AppleGameCenter's salt</param>
+    /// <param name="timestamp">AppleGameCenter's timestamp</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithAppleGameCenterAsync(
+        string signature,
+        string teamPlayerId,
+        string publicKeyURL,
+        string salt,
+        ulong timestamp,
+        SignInOptions options = null
+    );
+
+    /// <summary>
+    /// Link the current player with the AppleGameCenter account using AppleGameCenter's teamPlayerId.
+    /// </summary>
+    /// <param name="signature">AppleGameCenter's signature</param>
+    /// <param name="teamPlayerId">AppleGameCenter's teamPlayerId</param>
+    /// <param name="publicKeyURL">AppleGameCenter's publicKeyURL</param>
+    /// <param name="salt">AppleGameCenter's salt</param>
+    /// <param name="timestamp">AppleGameCenter's timestamp</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithAppleGameCenterAsync(
+        string signature,
+        string teamPlayerId,
+        string publicKeyURL,
+        string salt,
+        ulong timestamp,
+        LinkOptions options = null
+    );
+
+    /// <summary>
+    /// Unlinks the AppleGameCenter account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkAppleGameCenterAsync();
+
+    /// <summary>
+    /// Sign in using Google's ID token.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="idToken">Google's ID token</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithGoogleAsync(string idToken, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Google account using Google's ID token.
+    /// </summary>
+    /// <param name="idToken">Google's ID token</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithGoogleAsync(string idToken, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Google account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkGoogleAsync();
+
+    /// <summary>
+    /// Sign in using Google Play Games' authorization code.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="authCode">Google Play Games' authorization code</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithGooglePlayGamesAsync(string authCode, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Google play games account using Google play games' authorization code.
+    /// </summary>
+    /// <param name="authCode">Google play games' authorization code</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithGooglePlayGamesAsync(string authCode, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Google play games account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkGooglePlayGamesAsync();
+
+    /// <summary>
     /// Sign in using Username and Password credentials.
     /// </summary>
     /// <param name="username">Username of the player. Note that it must be unique per project and contains 3-20 characters of alphanumeric and/or these special characters [. - @ _].</param>
@@ -341,6 +459,127 @@ public partial class AuthenticationService : Node, IAuthenticationService
     public async Task UnlinkAppleAsync()
     {
         await UnlinkExternalTokenAsync(IdProviderKeys.Apple);
+    }
+
+    public async Task SignInWithAppleGameCenterAsync(
+        string signature,
+        string teamPlayerId,
+        string publicKeyURL,
+        string salt,
+        ulong timestamp,
+        SignInOptions options = null
+    )
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.AppleGameCenter,
+            new SignInWithAppleGameCenterRequest
+            {
+                IdProvider = IdProviderKeys.AppleGameCenter,
+                Token = signature,
+                AppleGameCenterConfig = new AppleGameCenterConfig
+                {
+                    TeamPlayerId = teamPlayerId,
+                    PublicKeyURL = publicKeyURL,
+                    Salt = salt,
+                    Timestamp = timestamp
+                },
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithAppleGameCenterAsync(
+        string signature,
+        string teamPlayerId,
+        string publicKeyURL,
+        string salt,
+        ulong timestamp,
+        LinkOptions options = null
+    )
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.AppleGameCenter,
+            new LinkWithAppleGameCenterRequest
+            {
+                IdProvider = IdProviderKeys.AppleGameCenter,
+                Token = signature,
+                AppleGameCenterConfig = new AppleGameCenterConfig
+                {
+                    TeamPlayerId = teamPlayerId,
+                    PublicKeyURL = publicKeyURL,
+                    Salt = salt,
+                    Timestamp = timestamp
+                },
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkAppleGameCenterAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.AppleGameCenter);
+    }
+
+    public async Task SignInWithGoogleAsync(string idToken, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Google,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Google,
+                Token = idToken,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithGoogleAsync(string idToken, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Google,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Google,
+                Token = idToken,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkGoogleAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Google);
+    }
+
+    public async Task SignInWithGooglePlayGamesAsync(string authCode, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.GooglePlayGames,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.GooglePlayGames,
+                Token = authCode,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithGooglePlayGamesAsync(string authCode, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.GooglePlayGames,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.GooglePlayGames,
+                Token = authCode,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkGooglePlayGamesAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.GooglePlayGames);
     }
 
     public async Task SignInWithUsernamePasswordAsync(string username, string password)
