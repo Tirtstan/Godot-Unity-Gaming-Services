@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
@@ -237,6 +238,99 @@ public interface IAuthenticationService
     public Task UnlinkGooglePlayGamesAsync();
 
     /// <summary>
+    /// Sign in using Facebook's access token.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="accessToken">Facebook's access token</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithFacebookAsync(string accessToken, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Facebook account using Facebook's access token.
+    /// </summary>
+    /// <param name="accessToken">Facebook's access token</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithFacebookAsync(string accessToken, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Facebook account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkFacebookAsync();
+
+    /// <summary>
+    /// Sign in using Steam's session ticket.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="sessionTicket">Steam's session ticket</param>
+    /// <param name="identity">The identity of the calling service</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithSteamAsync(string sessionTicket, string identity, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Steam account using Steam's session ticket.
+    /// </summary>
+    /// <param name="sessionTicket">Steam's session ticket</param>
+    /// <param name="identity">The identity of the calling service</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithSteamAsync(string sessionTicket, string identity, LinkOptions options = null);
+
+    /// <summary>
+    /// Sign in using Steam's session ticket.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="sessionTicket">Steam's session ticket</param>
+    /// <param name="identity">The identity of the calling service</param>
+    /// <param name="appId">App Id that was used to generate the ticket. Only required for additional app ids (e.g.: PlayTest, Demo, etc)</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithSteamAsync(string sessionTicket, string identity, string appId, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Steam account using Steam's session ticket.
+    /// </summary>
+    /// <param name="sessionTicket">Steam's session ticket</param>
+    /// <param name="identity">The identity of the calling service</param>
+    /// <param name="appId">App Id that was used to generate the ticket. Only required for additional app ids (e.g.: PlayTest, Demo, etc)</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithSteamAsync(string sessionTicket, string identity, string appId, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Steam account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkSteamAsync();
+
+    /// <summary>
     /// Sign in using Username and Password credentials.
     /// </summary>
     /// <param name="username">Username of the player. Note that it must be unique per project and contains 3-20 characters of alphanumeric and/or these special characters [. - @ _].</param>
@@ -364,6 +458,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
     private AccessToken accessToken = new();
     private string SessionToken => SignInResponse.SessionToken;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1";
+    private const string SteamIdentityRegex = @"^[a-zA-Z0-9]{5,30}$";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
     private const string Persistents = "Persistents";
     private string currentProfile = "DefaultProfile";
@@ -580,6 +675,116 @@ public partial class AuthenticationService : Node, IAuthenticationService
     public async Task UnlinkGooglePlayGamesAsync()
     {
         await UnlinkExternalTokenAsync(IdProviderKeys.GooglePlayGames);
+    }
+
+    public async Task SignInWithFacebookAsync(string accessToken, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Facebook,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Facebook,
+                Token = accessToken,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithFacebookAsync(string accessToken, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Facebook,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Facebook,
+                Token = accessToken,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkFacebookAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Facebook);
+    }
+
+    public async Task SignInWithSteamAsync(string sessionTicket, string identity, SignInOptions options = null)
+    {
+        ValidateSteamIdentity(identity);
+
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Steam,
+            new SignInWithSteamRequest
+            {
+                IdProvider = IdProviderKeys.Steam,
+                Token = sessionTicket,
+                SteamConfig = new SteamConfig { identity = identity },
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithSteamAsync(string sessionTicket, string identity, LinkOptions options = null)
+    {
+        ValidateSteamIdentity(identity);
+
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Steam,
+            new LinkWithSteamRequest
+            {
+                IdProvider = IdProviderKeys.Steam,
+                Token = sessionTicket,
+                SteamConfig = new SteamConfig { identity = identity },
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task SignInWithSteamAsync(
+        string sessionTicket,
+        string identity,
+        string appId,
+        SignInOptions options = null
+    )
+    {
+        ValidateSteamIdentity(identity);
+
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Steam,
+            new SignInWithSteamRequest
+            {
+                IdProvider = IdProviderKeys.Steam,
+                Token = sessionTicket,
+                SteamConfig = new SteamConfig { identity = identity, appId = appId },
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithSteamAsync(
+        string sessionTicket,
+        string identity,
+        string appId,
+        LinkOptions options = null
+    )
+    {
+        ValidateSteamIdentity(identity);
+
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Steam,
+            new LinkWithSteamRequest
+            {
+                IdProvider = IdProviderKeys.Steam,
+                Token = sessionTicket,
+                SteamConfig = new SteamConfig { identity = identity, appId = appId },
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkSteamAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Steam);
     }
 
     public async Task SignInWithUsernamePasswordAsync(string username, string password)
@@ -857,6 +1062,21 @@ public partial class AuthenticationService : Node, IAuthenticationService
         var response = await authClient.ExecuteAsync(request);
         if (!response.IsSuccessful)
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    private void ValidateSteamIdentity(string identity)
+    {
+        if (string.IsNullOrEmpty(identity))
+        {
+            throw new InvalidOperationException("Identity cannot be null or empty.");
+        }
+
+        if (!Regex.IsMatch(identity, SteamIdentityRegex))
+        {
+            throw new InvalidOperationException(
+                "The provided identity must only contain alphanumeric characters and be between 5 and 30 characters in length."
+            );
+        }
     }
 
     private void SaveCache()
