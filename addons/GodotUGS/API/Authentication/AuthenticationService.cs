@@ -331,6 +331,72 @@ public interface IAuthenticationService
     public Task UnlinkSteamAsync();
 
     /// <summary>
+    /// Sign in using an Oculus account userId and nonce key
+    /// If no options are used, this will create an account if none exists
+    /// </summary>
+    /// <param name="nonce">Client provided nonce key used by the server to verify that the provided Oculus userId is valid</param>
+    /// <param name="userId">Oculus account userId</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithOculusAsync(string nonce, string userId, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with an Oculus account
+    /// </summary>
+    /// <param name="nonce">Client provided nonce key used by the server to verify that the provided Oculus userId is valid</param>
+    /// <param name="userId">Oculus account userId</param>
+    /// <param name="options">Options for th operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithOculusAsync(string nonce, string userId, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Oculus account from the current player account
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkOculusAsync();
+
+    /// <summary>
+    /// Sign in using Unity Player Login's access token
+    /// </summary>
+    /// <param name="token">Unity Player Login's access token</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the async operation</returns>
+    /// <returns>Task for the async operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithUnityAsync(string token, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with Unity account using Unity's access token
+    /// </summary>
+    /// <param name="token">Unity's access token</param>
+    /// <param name="options">Options for the link operations</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithUnityAsync(string token, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Unity account from the current player account
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkUnityAsync();
+
+    /// <summary>
     /// Sign in using Username and Password credentials.
     /// </summary>
     /// <param name="username">Username of the player. Note that it must be unique per project and contains 3-20 characters of alphanumeric and/or these special characters [. - @ _].</param>
@@ -458,6 +524,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
     private AccessToken accessToken = new();
     private string SessionToken => SignInResponse.SessionToken;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1";
+    private const string ProfileRegex = @"^[a-zA-Z0-9_-]{1,30}$";
     private const string SteamIdentityRegex = @"^[a-zA-Z0-9]{5,30}$";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
     private const string Persistents = "Persistents";
@@ -787,6 +854,70 @@ public partial class AuthenticationService : Node, IAuthenticationService
         await UnlinkExternalTokenAsync(IdProviderKeys.Steam);
     }
 
+    public async Task SignInWithOculusAsync(string nonce, string userId, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Oculus,
+            new SignInWithOculusRequest
+            {
+                IdProvider = IdProviderKeys.Oculus,
+                Token = nonce,
+                OculusConfig = new OculusConfig { UserId = userId },
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithOculusAsync(string nonce, string userId, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Oculus,
+            new LinkWithOculusRequest
+            {
+                IdProvider = IdProviderKeys.Oculus,
+                Token = nonce,
+                OculusConfig = new OculusConfig { UserId = userId },
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkOculusAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Oculus);
+    }
+
+    public async Task SignInWithUnityAsync(string token, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Unity,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Unity,
+                Token = token,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithUnityAsync(string token, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Unity,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Unity,
+                Token = token,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkUnityAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Unity);
+    }
+
     public async Task SignInWithUsernamePasswordAsync(string username, string password)
     {
         var request = new RestRequest("/authentication/usernamepassword/sign-in", Method.Post).AddJsonBody(
@@ -879,10 +1010,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
         };
 
         var response = await authClient.ExecuteAsync(request);
-        if (!response.IsSuccessful)
+        if (response.IsSuccessful)
+            SignOut(true);
+        else
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
-
-        SignOut(true);
     }
 
     public void SignOut(bool clearCredentials = false)
@@ -922,21 +1053,17 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         var response = await authClient.ExecuteAsync<NotificationList>(request);
         if (response.IsSuccessful)
-        {
             return Notifications = response.Data.Notifications;
-        }
         else
-        {
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
-        }
     }
 
     public void SwitchProfile(string profileName)
     {
-        if (string.IsNullOrEmpty(profileName))
-            currentProfile = "DefaultProfile";
-        else
+        if (!string.IsNullOrEmpty(profileName) && Regex.Match(profileName, ProfileRegex).Success)
             currentProfile = profileName;
+        else
+            currentProfile = "DefaultProfile";
 
         SavePersistents();
         LoadCache();
@@ -995,6 +1122,8 @@ public partial class AuthenticationService : Node, IAuthenticationService
         {
             config.EraseSectionKey(currentProfile, "sessionToken");
             config.Save(CachePath);
+
+            SignInResponse.SessionToken = "";
         }
         catch { }
     }
@@ -1009,6 +1138,9 @@ public partial class AuthenticationService : Node, IAuthenticationService
         {
             config.EraseSectionKey(currentProfile, "idToken");
             config.Save(CachePath);
+
+            SignInResponse.IdToken = "";
+            accessToken = new();
         }
         catch { }
     }
@@ -1041,15 +1173,11 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         var response = await authClient.ExecuteAsync<LinkResponse>(request);
         if (response.IsSuccessful)
-        {
             PlayerInfo?.AddExternalIdentity(
                 response.Data.User?.ExternalIds?.FirstOrDefault(x => x.ProviderId == tokenRequest.IdProvider)
             );
-        }
         else
-        {
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
-        }
     }
 
     private async Task UnlinkExternalTokenAsync(string idProvider)
@@ -1060,7 +1188,9 @@ public partial class AuthenticationService : Node, IAuthenticationService
         }.AddJsonBody(new { externalId = PlayerInfo?.GetIdentityId(idProvider) });
 
         var response = await authClient.ExecuteAsync(request);
-        if (!response.IsSuccessful)
+        if (response.IsSuccessful)
+            PlayerInfo.RemoveIdentity(idProvider);
+        else
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
