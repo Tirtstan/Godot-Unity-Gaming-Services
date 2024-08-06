@@ -57,14 +57,14 @@ Done!
 -   Authentication
     -   Anonymous/Session
     -   Username & Password
+    -   Apple, Apple Game Center, Google, Google Play, Facebook, Steam, Oculus & Unity
 -   Leaderboards
 -   Cloud Save
 -   User Generated Content
--   Friends (Not thoroughly tested)
+-   Friends (Not properly tested)
 
 ### Planned
 
--   External Authentication Providers (Apple, Google, etc)
 -   Improved Friends Support (Events & Messaging)
 
 ## Services

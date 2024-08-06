@@ -277,7 +277,7 @@ public partial class UgcService : Node, IUgcService
         };
         ugcClient = new RestClient(
             options,
-            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
+            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { IncludeFields = true })
         );
 
         ugcClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);

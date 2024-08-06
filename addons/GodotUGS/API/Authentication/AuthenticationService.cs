@@ -5,10 +5,13 @@ namespace Unity.Services.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Godot;
 using RestSharp;
 using RestSharp.Authenticators;
+using RestSharp.Serializers.Json;
 using Unity.Services.Authentication.Internal;
 using Unity.Services.Authentication.Internal.Models;
 using Unity.Services.Authentication.Models;
@@ -85,6 +88,313 @@ public interface IAuthenticationService
     /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
     /// </exception>
     public Task SignInAnonymouslyAsync();
+
+    /// <summary>
+    /// Sign in using Apple's ID token.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="idToken">Apple's ID token</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.</exception>
+    public Task SignInWithAppleAsync(string idToken, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Apple account using Apple's ID token.
+    /// </summary>
+    /// <param name="idToken">Apple's ID token</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithAppleAsync(string idToken, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Apple account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkAppleAsync();
+
+    /// <summary>
+    /// Sign in using AppleGameCenter's teamPlayerId.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="signature">AppleGameCenter's signature</param>
+    /// <param name="teamPlayerId">AppleGameCenter's teamPlayerId</param>
+    /// <param name="publicKeyURL">AppleGameCenter's publicKeyURL</param>
+    /// <param name="salt">AppleGameCenter's salt</param>
+    /// <param name="timestamp">AppleGameCenter's timestamp</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithAppleGameCenterAsync(
+        string signature,
+        string teamPlayerId,
+        string publicKeyURL,
+        string salt,
+        ulong timestamp,
+        SignInOptions options = null
+    );
+
+    /// <summary>
+    /// Link the current player with the AppleGameCenter account using AppleGameCenter's teamPlayerId.
+    /// </summary>
+    /// <param name="signature">AppleGameCenter's signature</param>
+    /// <param name="teamPlayerId">AppleGameCenter's teamPlayerId</param>
+    /// <param name="publicKeyURL">AppleGameCenter's publicKeyURL</param>
+    /// <param name="salt">AppleGameCenter's salt</param>
+    /// <param name="timestamp">AppleGameCenter's timestamp</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithAppleGameCenterAsync(
+        string signature,
+        string teamPlayerId,
+        string publicKeyURL,
+        string salt,
+        ulong timestamp,
+        LinkOptions options = null
+    );
+
+    /// <summary>
+    /// Unlinks the AppleGameCenter account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkAppleGameCenterAsync();
+
+    /// <summary>
+    /// Sign in using Google's ID token.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="idToken">Google's ID token</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithGoogleAsync(string idToken, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Google account using Google's ID token.
+    /// </summary>
+    /// <param name="idToken">Google's ID token</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithGoogleAsync(string idToken, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Google account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkGoogleAsync();
+
+    /// <summary>
+    /// Sign in using Google Play Games' authorization code.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="authCode">Google Play Games' authorization code</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithGooglePlayGamesAsync(string authCode, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Google play games account using Google play games' authorization code.
+    /// </summary>
+    /// <param name="authCode">Google play games' authorization code</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithGooglePlayGamesAsync(string authCode, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Google play games account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkGooglePlayGamesAsync();
+
+    /// <summary>
+    /// Sign in using Facebook's access token.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="accessToken">Facebook's access token</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithFacebookAsync(string accessToken, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Facebook account using Facebook's access token.
+    /// </summary>
+    /// <param name="accessToken">Facebook's access token</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithFacebookAsync(string accessToken, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Facebook account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkFacebookAsync();
+
+    /// <summary>
+    /// Sign in using Steam's session ticket.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="sessionTicket">Steam's session ticket</param>
+    /// <param name="identity">The identity of the calling service</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithSteamAsync(string sessionTicket, string identity, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Steam account using Steam's session ticket.
+    /// </summary>
+    /// <param name="sessionTicket">Steam's session ticket</param>
+    /// <param name="identity">The identity of the calling service</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithSteamAsync(string sessionTicket, string identity, LinkOptions options = null);
+
+    /// <summary>
+    /// Sign in using Steam's session ticket.
+    /// If no options are used, this will create an account if none exist.
+    /// </summary>
+    /// <param name="sessionTicket">Steam's session ticket</param>
+    /// <param name="identity">The identity of the calling service</param>
+    /// <param name="appId">App Id that was used to generate the ticket. Only required for additional app ids (e.g.: PlayTest, Demo, etc)</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithSteamAsync(string sessionTicket, string identity, string appId, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with the Steam account using Steam's session ticket.
+    /// </summary>
+    /// <param name="sessionTicket">Steam's session ticket</param>
+    /// <param name="identity">The identity of the calling service</param>
+    /// <param name="appId">App Id that was used to generate the ticket. Only required for additional app ids (e.g.: PlayTest, Demo, etc)</param>
+    /// <param name="options">Options for the link operations.</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithSteamAsync(string sessionTicket, string identity, string appId, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Steam account from the current player account.
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkSteamAsync();
+
+    /// <summary>
+    /// Sign in using an Oculus account userId and nonce key
+    /// If no options are used, this will create an account if none exists
+    /// </summary>
+    /// <param name="nonce">Client provided nonce key used by the server to verify that the provided Oculus userId is valid</param>
+    /// <param name="userId">Oculus account userId</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithOculusAsync(string nonce, string userId, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with an Oculus account
+    /// </summary>
+    /// <param name="nonce">Client provided nonce key used by the server to verify that the provided Oculus userId is valid</param>
+    /// <param name="userId">Oculus account userId</param>
+    /// <param name="options">Options for th operation</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithOculusAsync(string nonce, string userId, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Oculus account from the current player account
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkOculusAsync();
+
+    /// <summary>
+    /// Sign in using Unity Player Login's access token
+    /// </summary>
+    /// <param name="token">Unity Player Login's access token</param>
+    /// <param name="options">Options for the operation</param>
+    /// <returns>Task for the async operation</returns>
+    /// <returns>Task for the async operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task SignInWithUnityAsync(string token, SignInOptions options = null);
+
+    /// <summary>
+    /// Link the current player with Unity account using Unity's access token
+    /// </summary>
+    /// <param name="token">Unity's access token</param>
+    /// <param name="options">Options for the link operations</param>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task LinkWithUnityAsync(string token, LinkOptions options = null);
+
+    /// <summary>
+    /// Unlinks the Unity account from the current player account
+    /// </summary>
+    /// <returns>Task for the operation</returns>
+    /// <exception cref="AuthenticationException">
+    /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
+    /// </exception>
+    public Task UnlinkUnityAsync();
 
     /// <summary>
     /// Sign in using Username and Password credentials.
@@ -197,23 +507,25 @@ public partial class AuthenticationService : Node, IAuthenticationService
     public event Action SignedIn;
     public event Action SignedOut;
     public bool IsSignedIn { get; private set; }
-    public string AccessToken => UserSession.IdToken;
+    public string AccessToken => SignInResponse.IdToken;
     internal string EnvironmentId { get; private set; }
-    public string PlayerId => UserSession.User.Id;
-    public string PlayerName => UserSession.User.Username;
+    public string PlayerId => SignInResponse.User.Id;
+    public string PlayerName => SignInResponse.User.Username;
     public string Profile => currentProfile;
     public bool SessionTokenExists => !string.IsNullOrEmpty(SessionToken);
     public string LastNotificationDate =>
-        DateTime.UnixEpoch.AddMilliseconds(UserSession.LastNotificationDate).ToString();
+        DateTime.UnixEpoch.AddMilliseconds(SignInResponse.LastNotificationDate).ToString();
     public PlayerInfo PlayerInfo { get; private set; }
     public List<Notification> Notifications { get; private set; }
 
     private RestClient authClient;
     private ConfigFile config = new();
-    private UserSession UserSession = new();
+    private SignInResponse SignInResponse = new();
     private AccessToken accessToken = new();
-    private string SessionToken => UserSession.SessionToken;
+    private string SessionToken => SignInResponse.SessionToken;
     private const string AuthURL = "https://player-auth.services.api.unity.com/v1";
+    private const string ProfileRegex = @"^[a-zA-Z0-9_-]{1,30}$";
+    private const string SteamIdentityRegex = @"^[a-zA-Z0-9]{5,30}$";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
     private const string Persistents = "Persistents";
     private string currentProfile = "DefaultProfile";
@@ -222,7 +534,11 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
     public override void _Ready()
     {
-        authClient = new RestClient(AuthURL);
+        var options = new RestClientOptions(AuthURL);
+        authClient = new RestClient(
+            options,
+            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { IncludeFields = true })
+        );
         authClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
 
         LoadPersistents();
@@ -246,10 +562,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         var request = new RestRequest("/authentication/anonymous", Method.Post) { RequestFormat = DataFormat.Json };
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -263,10 +579,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
     {
         var request = new RestRequest("/authentication/session-token", Method.Post).AddJsonBody(new { sessionToken });
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -276,16 +592,342 @@ public partial class AuthenticationService : Node, IAuthenticationService
         }
     }
 
+    public async Task SignInWithAppleAsync(string idToken, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Apple,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Apple,
+                Token = idToken,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithAppleAsync(string idToken, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Apple,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Apple,
+                Token = idToken,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkAppleAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Apple);
+    }
+
+    public async Task SignInWithAppleGameCenterAsync(
+        string signature,
+        string teamPlayerId,
+        string publicKeyURL,
+        string salt,
+        ulong timestamp,
+        SignInOptions options = null
+    )
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.AppleGameCenter,
+            new SignInWithAppleGameCenterRequest
+            {
+                IdProvider = IdProviderKeys.AppleGameCenter,
+                Token = signature,
+                AppleGameCenterConfig = new AppleGameCenterConfig
+                {
+                    TeamPlayerId = teamPlayerId,
+                    PublicKeyURL = publicKeyURL,
+                    Salt = salt,
+                    Timestamp = timestamp
+                },
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithAppleGameCenterAsync(
+        string signature,
+        string teamPlayerId,
+        string publicKeyURL,
+        string salt,
+        ulong timestamp,
+        LinkOptions options = null
+    )
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.AppleGameCenter,
+            new LinkWithAppleGameCenterRequest
+            {
+                IdProvider = IdProviderKeys.AppleGameCenter,
+                Token = signature,
+                AppleGameCenterConfig = new AppleGameCenterConfig
+                {
+                    TeamPlayerId = teamPlayerId,
+                    PublicKeyURL = publicKeyURL,
+                    Salt = salt,
+                    Timestamp = timestamp
+                },
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkAppleGameCenterAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.AppleGameCenter);
+    }
+
+    public async Task SignInWithGoogleAsync(string idToken, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Google,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Google,
+                Token = idToken,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithGoogleAsync(string idToken, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Google,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Google,
+                Token = idToken,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkGoogleAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Google);
+    }
+
+    public async Task SignInWithGooglePlayGamesAsync(string authCode, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.GooglePlayGames,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.GooglePlayGames,
+                Token = authCode,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithGooglePlayGamesAsync(string authCode, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.GooglePlayGames,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.GooglePlayGames,
+                Token = authCode,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkGooglePlayGamesAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.GooglePlayGames);
+    }
+
+    public async Task SignInWithFacebookAsync(string accessToken, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Facebook,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Facebook,
+                Token = accessToken,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithFacebookAsync(string accessToken, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Facebook,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Facebook,
+                Token = accessToken,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkFacebookAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Facebook);
+    }
+
+    public async Task SignInWithSteamAsync(string sessionTicket, string identity, SignInOptions options = null)
+    {
+        ValidateSteamIdentity(identity);
+
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Steam,
+            new SignInWithSteamRequest
+            {
+                IdProvider = IdProviderKeys.Steam,
+                Token = sessionTicket,
+                SteamConfig = new SteamConfig { identity = identity },
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithSteamAsync(string sessionTicket, string identity, LinkOptions options = null)
+    {
+        ValidateSteamIdentity(identity);
+
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Steam,
+            new LinkWithSteamRequest
+            {
+                IdProvider = IdProviderKeys.Steam,
+                Token = sessionTicket,
+                SteamConfig = new SteamConfig { identity = identity },
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task SignInWithSteamAsync(
+        string sessionTicket,
+        string identity,
+        string appId,
+        SignInOptions options = null
+    )
+    {
+        ValidateSteamIdentity(identity);
+
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Steam,
+            new SignInWithSteamRequest
+            {
+                IdProvider = IdProviderKeys.Steam,
+                Token = sessionTicket,
+                SteamConfig = new SteamConfig { identity = identity, appId = appId },
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithSteamAsync(
+        string sessionTicket,
+        string identity,
+        string appId,
+        LinkOptions options = null
+    )
+    {
+        ValidateSteamIdentity(identity);
+
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Steam,
+            new LinkWithSteamRequest
+            {
+                IdProvider = IdProviderKeys.Steam,
+                Token = sessionTicket,
+                SteamConfig = new SteamConfig { identity = identity, appId = appId },
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkSteamAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Steam);
+    }
+
+    public async Task SignInWithOculusAsync(string nonce, string userId, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Oculus,
+            new SignInWithOculusRequest
+            {
+                IdProvider = IdProviderKeys.Oculus,
+                Token = nonce,
+                OculusConfig = new OculusConfig { UserId = userId },
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithOculusAsync(string nonce, string userId, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Oculus,
+            new LinkWithOculusRequest
+            {
+                IdProvider = IdProviderKeys.Oculus,
+                Token = nonce,
+                OculusConfig = new OculusConfig { UserId = userId },
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkOculusAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Oculus);
+    }
+
+    public async Task SignInWithUnityAsync(string token, SignInOptions options = null)
+    {
+        await SignInWithExternalTokenAsync(
+            IdProviderKeys.Unity,
+            new SignInWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Unity,
+                Token = token,
+                SignInOnly = !options?.CreateAccount ?? false
+            }
+        );
+    }
+
+    public async Task LinkWithUnityAsync(string token, LinkOptions options = null)
+    {
+        await LinkWithExternalTokenAsync(
+            IdProviderKeys.Unity,
+            new LinkWithExternalTokenRequest
+            {
+                IdProvider = IdProviderKeys.Unity,
+                Token = token,
+                ForceLink = options?.ForceLink ?? false
+            }
+        );
+    }
+
+    public async Task UnlinkUnityAsync()
+    {
+        await UnlinkExternalTokenAsync(IdProviderKeys.Unity);
+    }
+
     public async Task SignInWithUsernamePasswordAsync(string username, string password)
     {
         var request = new RestRequest("/authentication/usernamepassword/sign-in", Method.Post).AddJsonBody(
             new { username, password }
         );
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -301,10 +943,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
             new { username, password }
         );
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -326,10 +968,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
         );
         request.Authenticator = new JwtAuthenticator(AccessToken);
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -346,10 +988,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
         );
         request.Authenticator = new JwtAuthenticator(AccessToken);
 
-        var response = await authClient.ExecuteAsync<UserSession>(request);
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
         if (response.IsSuccessful)
         {
-            UserSession = response.Data;
+            SignInResponse = response.Data;
             SaveCache();
             SignedIn?.Invoke();
         }
@@ -368,10 +1010,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
         };
 
         var response = await authClient.ExecuteAsync(request);
-        if (!response.IsSuccessful)
-            throw response.ErrorException;
-
-        SignOut(true);
+        if (response.IsSuccessful)
+            SignOut(true);
+        else
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
 
     public void SignOut(bool clearCredentials = false)
@@ -382,18 +1024,21 @@ public partial class AuthenticationService : Node, IAuthenticationService
             ClearSessionToken();
         }
 
-        UserSession = new UserSession();
+        SignInResponse = new SignInResponse();
         SignedOut?.Invoke();
     }
 
     public async Task<PlayerInfo> GetPlayerInfoAsync()
     {
-        var request = new RestRequest($"/users/{PlayerId}").AddHeader("Authorization", $"Bearer {AccessToken}");
-        request.RequestFormat = DataFormat.Json;
+        var request = new RestRequest($"/users/{PlayerId}")
+        {
+            RequestFormat = DataFormat.Json,
+            Authenticator = new JwtAuthenticator(AccessToken)
+        };
 
-        var response = await authClient.ExecuteAsync<PlayerInfo>(request);
+        var response = await authClient.ExecuteAsync<PlayerInfoResponse>(request);
         if (response.IsSuccessful)
-            return PlayerInfo = response.Data;
+            return PlayerInfo = new PlayerInfo(response.Data);
         else
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
@@ -408,21 +1053,17 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         var response = await authClient.ExecuteAsync<NotificationList>(request);
         if (response.IsSuccessful)
-        {
             return Notifications = response.Data.Notifications;
-        }
         else
-        {
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
-        }
     }
 
     public void SwitchProfile(string profileName)
     {
-        if (string.IsNullOrEmpty(profileName))
-            currentProfile = "DefaultProfile";
-        else
+        if (!string.IsNullOrEmpty(profileName) && Regex.Match(profileName, ProfileRegex).Success)
             currentProfile = profileName;
+        else
+            currentProfile = "DefaultProfile";
 
         SavePersistents();
         LoadCache();
@@ -481,6 +1122,8 @@ public partial class AuthenticationService : Node, IAuthenticationService
         {
             config.EraseSectionKey(currentProfile, "sessionToken");
             config.Save(CachePath);
+
+            SignInResponse.SessionToken = "";
         }
         catch { }
     }
@@ -495,8 +1138,75 @@ public partial class AuthenticationService : Node, IAuthenticationService
         {
             config.EraseSectionKey(currentProfile, "idToken");
             config.Save(CachePath);
+
+            SignInResponse.IdToken = "";
+            accessToken = new();
         }
         catch { }
+    }
+
+    private async Task SignInWithExternalTokenAsync(string idProvider, SignInWithExternalTokenRequest tokenRequest)
+    {
+        var request = new RestRequest($"/authentication/external-token/{idProvider}", Method.Post).AddJsonBody(
+            tokenRequest
+        );
+
+        var response = await authClient.ExecuteAsync<SignInResponse>(request);
+        if (response.IsSuccessful)
+        {
+            SignInResponse = response.Data;
+            SaveCache();
+            SignedIn?.Invoke();
+        }
+        else
+        {
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
+        }
+    }
+
+    private async Task LinkWithExternalTokenAsync(string idProvider, LinkWithExternalTokenRequest tokenRequest)
+    {
+        var request = new RestRequest($"/authentication/link/{idProvider}", Method.Post)
+        {
+            Authenticator = new JwtAuthenticator(AccessToken)
+        }.AddJsonBody(tokenRequest);
+
+        var response = await authClient.ExecuteAsync<LinkResponse>(request);
+        if (response.IsSuccessful)
+            PlayerInfo?.AddExternalIdentity(
+                response.Data.User?.ExternalIds?.FirstOrDefault(x => x.ProviderId == tokenRequest.IdProvider)
+            );
+        else
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    private async Task UnlinkExternalTokenAsync(string idProvider)
+    {
+        var request = new RestRequest($"/authentication/unlink/{idProvider}", Method.Post)
+        {
+            Authenticator = new JwtAuthenticator(AccessToken)
+        }.AddJsonBody(new { externalId = PlayerInfo?.GetIdentityId(idProvider) });
+
+        var response = await authClient.ExecuteAsync(request);
+        if (response.IsSuccessful)
+            PlayerInfo.RemoveIdentity(idProvider);
+        else
+            throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
+    }
+
+    private void ValidateSteamIdentity(string identity)
+    {
+        if (string.IsNullOrEmpty(identity))
+        {
+            throw new InvalidOperationException("Identity cannot be null or empty.");
+        }
+
+        if (!Regex.IsMatch(identity, SteamIdentityRegex))
+        {
+            throw new InvalidOperationException(
+                "The provided identity must only contain alphanumeric characters and be between 5 and 30 characters in length."
+            );
+        }
     }
 
     private void SaveCache()
@@ -513,10 +1223,10 @@ public partial class AuthenticationService : Node, IAuthenticationService
         if (error != Error.Ok)
             return;
 
-        UserSession = new UserSession();
+        SignInResponse = new SignInResponse();
         if (config.HasSection(currentProfile))
         {
-            UserSession = new UserSession
+            SignInResponse = new SignInResponse
             {
                 IdToken = (string)config.GetValue(currentProfile, "idToken"),
                 SessionToken = (string)config.GetValue(currentProfile, "sessionToken")

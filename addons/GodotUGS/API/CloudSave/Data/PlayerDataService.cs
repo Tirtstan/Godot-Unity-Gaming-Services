@@ -129,7 +129,7 @@ public class PlayerDataService : IPlayerDataService
         };
         playerDataClient = new RestClient(
             options,
-            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { })
+            configureSerialization: s => s.UseSystemTextJson(new JsonSerializerOptions { IncludeFields = true })
         );
 
         playerDataClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);

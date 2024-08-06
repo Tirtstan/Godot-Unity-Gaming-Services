@@ -2,23 +2,25 @@ namespace Unity.Services.Authentication.Models;
 
 using System.Text.Json.Serialization;
 
-public class UserSession
+public class SignInResponse
 {
+    public SignInResponse() { }
+
     [JsonPropertyName("expiresIn")]
-    public int ExpiresIn { get; set; }
+    public int ExpiresIn;
 
     [JsonPropertyName("idToken")]
-    public string IdToken { get; set; } = "";
+    public string IdToken;
 
     [JsonPropertyName("sessionToken")]
-    public string SessionToken { get; set; } = "";
+    public string SessionToken;
 
     [JsonPropertyName("lastNotificationDate")]
-    public double LastNotificationDate { get; set; }
+    public double LastNotificationDate;
 
     [JsonPropertyName("user")]
-    public User User { get; set; } = new();
+    public User User;
 
     [JsonPropertyName("userId")]
-    public string UserId { get; set; } = "";
+    public string UserId;
 }
