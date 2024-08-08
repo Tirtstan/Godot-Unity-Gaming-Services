@@ -102,7 +102,7 @@ public interface IPlayerDataService
     /// <summary>
     /// Queries indexed player data from Cloud Save, and returns the requested keys for matching items.
     /// </summary>
-    /// <param name="options">The query conditions to apply, including field filters and sort orders</param>
+    /// <param name="query">The query conditions to apply, including field filters and sort orders</param>
     /// <param name="options">Options to modify the behavior of the method, specifying AccessClass</param>
     /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server including their write locks</returns>
     /// <returns>The dictionary of saved keys and the corresponding updated write lock</returns>

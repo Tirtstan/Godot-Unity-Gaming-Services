@@ -52,11 +52,11 @@ public interface IFriendsService
     /// This must be called before using any other functionality of the Friends service.
     /// This can only be called when a user is signed in.
     /// </summary>
-    /// <param name="initializeOptions">Options to initialize the Friends service</param>
+    /// <param name="options">Options to initialize the Friends service</param>
     /// <exception cref="ArgumentException">Represents an error that occurs when an argument is incorrectly setup.</exception>
     /// <exception cref="InvalidOperationException">Thrown if the user is not signed in.</exception>
     /// <exception cref="FriendsServiceException">An exception containing the FriendsContent with headers, response code, and string of error.</exception>
-    public Task InitializeAsync(InitializeOptions initializeOptions = null);
+    public Task InitializeAsync(InitializeOptions options = null);
 
     /// <summary>
     /// Creates a friend request, or automatically creates a friendship if the user already has an incoming friend request from the
@@ -161,7 +161,6 @@ public interface IFriendsService
     /// <summary>
     /// Gets the presence for a specified user by id.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     /// <exception cref="ArgumentException">Represents an error that occurs when an argument is incorrectly setup.</exception>
     /// <exception cref="FriendsServiceException">An exception containing the FriendsContent with headers, response code, and string of error.</exception>
     /// <exception cref="InvalidOperationException">Represents an error that occurs when the service has not been initialized.</exception>
@@ -179,7 +178,7 @@ public partial class FriendsService : Node, IFriendsService
             .Where(r =>
                 r.Type == RelationshipType.FriendRequest
                 && r.Member.Role == MemberRole.Source
-                && !Blocks.Any(b => b.Member.Id == r.Member.Id)
+                && Blocks.All(b => b.Member.Id != r.Member.Id)
             )
             .ToList();
 
@@ -188,13 +187,13 @@ public partial class FriendsService : Node, IFriendsService
             .Where(r =>
                 r.Type == RelationshipType.FriendRequest
                 && r.Member.Role == MemberRole.Target
-                && !Blocks.Any(b => b.Member.Id == r.Member.Id)
+                && Blocks.All(b => b.Member.Id != r.Member.Id)
             )
             .ToList();
 
     public IReadOnlyList<Relationship> Friends =>
         relationships
-            .Where(r => r.Type == RelationshipType.Friend && !Blocks.Any(b => b.Member.Id == r.Member.Id))
+            .Where(r => r.Type == RelationshipType.Friend && Blocks.All(b => b.Member.Id != r.Member.Id))
             .ToList();
 
     public IReadOnlyList<Relationship> Blocks => relationships.Where(r => r.Type == RelationshipType.Block).ToList();
@@ -226,7 +225,7 @@ public partial class FriendsService : Node, IFriendsService
         friendsClient.AddDefaultHeaders(UnityServices.Instance.DefaultHeaders);
     }
 
-    public async Task InitializeAsync(InitializeOptions initializeOptions = null)
+    public async Task InitializeAsync(InitializeOptions options = null)
     {
         if (isInitialized)
             return;
@@ -234,7 +233,7 @@ public partial class FriendsService : Node, IFriendsService
         if (!AuthenticationService.Instance.IsSignedIn)
             throw new InvalidOperationException("User must be signed in to initialize the Friends service.");
 
-        this.initializeOptions = initializeOptions ?? new InitializeOptions();
+        initializeOptions = options ?? new InitializeOptions();
         isInitialized = true;
         await ForceRelationshipsRefreshAsync();
     }

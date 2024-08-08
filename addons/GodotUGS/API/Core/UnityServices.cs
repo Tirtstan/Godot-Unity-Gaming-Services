@@ -1,7 +1,6 @@
 namespace Unity.Services.Core;
 
 // References: https://services.docs.unity.com/docs/service-account-auth/ && https://restsharp.dev/docs/usage/basics
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ public partial class UnityServices : Node
     public string Environment => initializationOptions.Environment;
     public string ProjectId => apiResource.ProjectId;
     public event Action<bool> OnInitialize;
+
     public Dictionary<string, string> DefaultHeaders =>
         new() { { "ProjectId", ProjectId }, { "UnityEnvironment", Environment } };
 
@@ -34,13 +34,10 @@ public partial class UnityServices : Node
     public async Task InitializeAsync(InitializationOptions options = null)
     {
         if (apiResource == null)
-        {
             throw new NullReferenceException("API Resource is not set!");
-        }
-        else if (string.IsNullOrEmpty(apiResource.ProjectId))
-        {
+
+        if (string.IsNullOrEmpty(apiResource.ProjectId))
             throw new NullReferenceException("Project ID is not set!");
-        }
 
         if (options != null)
             initializationOptions = options;
@@ -50,6 +47,11 @@ public partial class UnityServices : Node
         OnInitialize?.Invoke(response.IsSuccessful);
 
         if (!response.IsSuccessful)
+        {
+            if (response.ErrorException == null)
+                throw new ServicesInitializationException("Failed to initialize Unity Services");
+
             throw response.ErrorException;
+        }
     }
 }
