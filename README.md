@@ -18,7 +18,7 @@ Scripts are communicated by singletons like in Unity. I use one initial Godot Au
 
 Get the addon from the **[Godot Asset Library](https://godotengine.org/asset-library/asset/3147)** or through **[GitHub Releases](https://github.com/Tirtstan/Godot-Unity-Gaming-Services/releases/)** (up to date quicker).
 
-If through GitHub, unzip the folder and add to your project's `res://addons`.
+If through GitHub, unzip the folder and move it into your project's `res://addons`.
 
 ### Install
 
@@ -43,8 +43,8 @@ If through GitHub, unzip the folder and add to your project's `res://addons`.
 
     -   Locate the example `APIResource` in `res://addons/GodotUGS/Resources/APIResource_Example.tres`.
     -   Fill in the project ID field.
-    -   Locate the GodotUGS autoload in `res://addons/GodotUGS/Autoloads/GodotUGS.tscn`and open it.
-    -   In the `UnityServices Node`, provide the `APIResource` file through the inspector.
+    -   Locate the GodotUGS autoload in `res://addons/GodotUGS/Autoloads/GodotUGS.tscn` and open it.
+    -   In the `UnityServices` `Node`, provide the `APIResource` file through the inspector.
 
 Go to `Project > Project Settings > Plugins` and enable GodotUGS.
 
