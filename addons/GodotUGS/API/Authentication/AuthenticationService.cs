@@ -1,7 +1,8 @@
+using System.Globalization;
+
 namespace Unity.Services.Authentication;
 
 // References: https://services.docs.unity.com/docs/client-auth && https://restsharp.dev/docs/usage/basics
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +53,7 @@ public interface IAuthenticationService
     public string PlayerName { get; }
 
     /// <summary>
-    /// The profile isolates the values saved to the PlayerPrefs.
+    /// The profile isolates the values saved to the config file.
     /// You can use profiles to sign in to multiple accounts on a single device.
     /// Use the <see cref="SwitchProfile(string)"/> method to change this value.
     /// </summary>
@@ -241,24 +242,24 @@ public interface IAuthenticationService
     /// Sign in using Facebook's access token.
     /// If no options are used, this will create an account if none exist.
     /// </summary>
-    /// <param name="accessToken">Facebook's access token</param>
+    /// <param name="token">Facebook's access token</param>
     /// <param name="options">Options for the operation</param>
     /// <returns>Task for the operation</returns>
     /// <exception cref="AuthenticationException">
     /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
     /// </exception>
-    public Task SignInWithFacebookAsync(string accessToken, SignInOptions options = null);
+    public Task SignInWithFacebookAsync(string token, SignInOptions options = null);
 
     /// <summary>
     /// Link the current player with the Facebook account using Facebook's access token.
     /// </summary>
-    /// <param name="accessToken">Facebook's access token</param>
+    /// <param name="token">Facebook's access token</param>
     /// <param name="options">Options for the link operations.</param>
     /// <returns>Task for the operation</returns>
     /// <exception cref="AuthenticationException">
     /// The task fails with the exception when the task cannot complete successfully due to Authentication specific errors.
     /// </exception>
-    public Task LinkWithFacebookAsync(string accessToken, LinkOptions options = null);
+    public Task LinkWithFacebookAsync(string token, LinkOptions options = null);
 
     /// <summary>
     /// Unlinks the Facebook account from the current player account.
@@ -471,7 +472,7 @@ public interface IAuthenticationService
     /// Switch the current profile.
     /// You can use profiles to sign in to multiple accounts on a single device.
     /// </summary>
-    /// <param name="profile">The profile to switch to.</param>
+    /// <param name="profileName">The profile to switch to.</param>
     public void SwitchProfile(string profileName);
 
     /// <summary>
@@ -511,10 +512,12 @@ public partial class AuthenticationService : Node, IAuthenticationService
     internal string EnvironmentId { get; private set; }
     public string PlayerId => SignInResponse.User.Id;
     public string PlayerName => SignInResponse.User.Username;
-    public string Profile => currentProfile;
+    public string Profile { get; private set; } = "DefaultProfile";
     public bool SessionTokenExists => !string.IsNullOrEmpty(SessionToken);
+
     public string LastNotificationDate =>
-        DateTime.UnixEpoch.AddMilliseconds(SignInResponse.LastNotificationDate).ToString();
+        DateTime.UnixEpoch.AddMilliseconds(SignInResponse.LastNotificationDate).ToString(CultureInfo.InvariantCulture);
+
     public PlayerInfo PlayerInfo { get; private set; }
     public List<Notification> Notifications { get; private set; }
 
@@ -528,7 +531,6 @@ public partial class AuthenticationService : Node, IAuthenticationService
     private const string SteamIdentityRegex = @"^[a-zA-Z0-9]{5,30}$";
     private const string CachePath = "user://GodotUGS_UserCache.cfg";
     private const string Persistents = "Persistents";
-    private string currentProfile = "DefaultProfile";
 
     public override void _EnterTree() => Instance = this;
 
@@ -744,27 +746,27 @@ public partial class AuthenticationService : Node, IAuthenticationService
         await UnlinkExternalTokenAsync(IdProviderKeys.GooglePlayGames);
     }
 
-    public async Task SignInWithFacebookAsync(string accessToken, SignInOptions options = null)
+    public async Task SignInWithFacebookAsync(string token, SignInOptions options = null)
     {
         await SignInWithExternalTokenAsync(
             IdProviderKeys.Facebook,
             new SignInWithExternalTokenRequest
             {
                 IdProvider = IdProviderKeys.Facebook,
-                Token = accessToken,
+                Token = token,
                 SignInOnly = !options?.CreateAccount ?? false
             }
         );
     }
 
-    public async Task LinkWithFacebookAsync(string accessToken, LinkOptions options = null)
+    public async Task LinkWithFacebookAsync(string token, LinkOptions options = null)
     {
         await LinkWithExternalTokenAsync(
             IdProviderKeys.Facebook,
             new LinkWithExternalTokenRequest
             {
                 IdProvider = IdProviderKeys.Facebook,
-                Token = accessToken,
+                Token = token,
                 ForceLink = options?.ForceLink ?? false
             }
         );
@@ -960,7 +962,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
     {
         if (string.IsNullOrEmpty(AccessToken))
             throw new NullReferenceException(
-                "User must be signed in an already existant account to add a username and password."
+                "User must be signed in an already existent account to add a username and password."
             );
 
         var request = new RestRequest("/authentication/usernamepassword/sign-up", Method.Post).AddJsonBody(
@@ -1061,9 +1063,9 @@ public partial class AuthenticationService : Node, IAuthenticationService
     public void SwitchProfile(string profileName)
     {
         if (!string.IsNullOrEmpty(profileName) && Regex.Match(profileName, ProfileRegex).Success)
-            currentProfile = profileName;
+            Profile = profileName;
         else
-            currentProfile = "DefaultProfile";
+            Profile = "DefaultProfile";
 
         SavePersistents();
         LoadCache();
@@ -1104,7 +1106,6 @@ public partial class AuthenticationService : Node, IAuthenticationService
     {
         var request = new RestRequest("https://player-auth.services.api.unity.com/.well-known/jwks.json");
         var response = await authClient.ExecuteAsync(request);
-        GD.Print(response.Content);
 
         if (response.IsSuccessful)
             GD.Print("Success!");
@@ -1120,7 +1121,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         try
         {
-            config.EraseSectionKey(currentProfile, "sessionToken");
+            config.EraseSectionKey(Profile, "sessionToken");
             config.Save(CachePath);
 
             SignInResponse.SessionToken = "";
@@ -1136,11 +1137,11 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         try
         {
-            config.EraseSectionKey(currentProfile, "idToken");
+            config.EraseSectionKey(Profile, "idToken");
             config.Save(CachePath);
 
             SignInResponse.IdToken = "";
-            accessToken = new();
+            accessToken = new AccessToken();
         }
         catch { }
     }
@@ -1189,7 +1190,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
         var response = await authClient.ExecuteAsync(request);
         if (response.IsSuccessful)
-            PlayerInfo.RemoveIdentity(idProvider);
+            PlayerInfo?.RemoveIdentity(idProvider);
         else
             throw new AuthenticationException(response.Content, response.ErrorMessage, response.ErrorException);
     }
@@ -1211,8 +1212,8 @@ public partial class AuthenticationService : Node, IAuthenticationService
 
     private void SaveCache()
     {
-        config.SetValue(currentProfile, "idToken", AccessToken);
-        config.SetValue(currentProfile, "sessionToken", SessionToken);
+        config.SetValue(Profile, "idToken", AccessToken);
+        config.SetValue(Profile, "sessionToken", SessionToken);
 
         config.Save(CachePath);
     }
@@ -1224,19 +1225,19 @@ public partial class AuthenticationService : Node, IAuthenticationService
             return;
 
         SignInResponse = new SignInResponse();
-        if (config.HasSection(currentProfile))
+        if (config.HasSection(Profile))
         {
             SignInResponse = new SignInResponse
             {
-                IdToken = (string)config.GetValue(currentProfile, "idToken"),
-                SessionToken = (string)config.GetValue(currentProfile, "sessionToken")
+                IdToken = (string)config.GetValue(Profile, "idToken"),
+                SessionToken = (string)config.GetValue(Profile, "sessionToken")
             };
         }
     }
 
     private void SavePersistents()
     {
-        config.SetValue(Persistents, "lastUsedProfile", currentProfile);
+        config.SetValue(Persistents, "lastUsedProfile", Profile);
 
         config.Save(CachePath);
     }
@@ -1248,7 +1249,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             return;
 
         if (config.HasSection(Persistents))
-            currentProfile = (string)config.GetValue(Persistents, "lastUsedProfile");
+            Profile = (string)config.GetValue(Persistents, "lastUsedProfile");
     }
 
     private void OnSignIn()

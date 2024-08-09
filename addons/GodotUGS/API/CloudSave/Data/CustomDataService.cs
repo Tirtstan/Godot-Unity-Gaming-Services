@@ -46,7 +46,6 @@ public interface ICustomDataService
     /// Throws a CloudSaveException with a reason code and explanation of what happened.
     /// </summary>
     /// <param name="query">The query conditions to apply, including field filters and sort orders</param>
-    /// <param name="options">Options to modify the behavior of the method</param>
     /// <returns>The dictionary of all key-value pairs that represents the current state of data on the server including their write locks</returns>
     /// <exception cref="CloudSaveException">Thrown if request is unsuccessful.</exception>
     public Task<List<EntityData>> QueryAsync(Query query);

@@ -298,22 +298,22 @@ public partial class UgcService : Node, IUgcService
 
         if (getContentsArgs?.SortBys != null)
         {
-            foreach (var sort in getContentsArgs?.SortBys)
+            foreach (var sort in getContentsArgs.SortBys)
                 request.AddQueryParameter("sortBys", sort);
         }
 
         if (!string.IsNullOrEmpty(getContentsArgs?.Search))
-            request.AddQueryParameter("search", getContentsArgs?.Search);
+            request.AddQueryParameter("search", getContentsArgs.Search);
 
         if (getContentsArgs?.Tags != null)
         {
-            foreach (var tag in getContentsArgs?.Tags)
+            foreach (var tag in getContentsArgs.Tags)
                 request.AddQueryParameter("tags", tag);
         }
 
         if (getContentsArgs?.Filters != null)
         {
-            foreach (var filter in getContentsArgs?.Filters)
+            foreach (var filter in getContentsArgs.Filters)
                 request.AddQueryParameter("filters", filter);
         }
 
@@ -345,7 +345,7 @@ public partial class UgcService : Node, IUgcService
 
         if (getPlayerContentsArgs?.SortBys != null)
         {
-            foreach (var sort in getPlayerContentsArgs?.SortBys)
+            foreach (var sort in getPlayerContentsArgs.SortBys)
                 request.AddQueryParameter("sortBys", sort);
         }
 
@@ -354,7 +354,7 @@ public partial class UgcService : Node, IUgcService
 
         if (getPlayerContentsArgs?.Filters != null)
         {
-            foreach (var filter in getPlayerContentsArgs?.Filters)
+            foreach (var filter in getPlayerContentsArgs.Filters)
                 request.AddQueryParameter("filters", filter);
         }
 
@@ -374,7 +374,7 @@ public partial class UgcService : Node, IUgcService
         }
     }
 
-    public async Task<PagedResults<Content>> GetContentTrendsAsync(GetContentTrendsArgs getContentTrendsArgs = null)
+    public async Task<PagedResults<Content>> GetContentTrendsAsync(GetContentTrendsArgs getContentTrendsArgs)
     {
         Validate();
 
@@ -384,12 +384,12 @@ public partial class UgcService : Node, IUgcService
         {
             RequestFormat = DataFormat.Json
         }
-            .AddQueryParameter("offset", getContentTrendsArgs?.Offset ?? 0)
-            .AddQueryParameter("limit", getContentTrendsArgs?.Limit ?? 25)
-            .AddQueryParameter("includeTotal", getContentTrendsArgs?.IncludeTotal ?? false);
+            .AddQueryParameter("offset", getContentTrendsArgs.Offset)
+            .AddQueryParameter("limit", getContentTrendsArgs.Limit)
+            .AddQueryParameter("includeTotal", getContentTrendsArgs.IncludeTotal);
 
-        if (!string.IsNullOrEmpty(getContentTrendsArgs?.GetSortBy()))
-            request.AddQueryParameter("sortBys", getContentTrendsArgs?.GetSortBy());
+        if (!string.IsNullOrEmpty(getContentTrendsArgs.GetSortBy()))
+            request.AddQueryParameter("sortBys", getContentTrendsArgs.GetSortBy());
 
         var response = await ugcClient.ExecuteAsync<PagedResults<InternalContent>>(request);
         if (response.IsSuccessful)
@@ -419,13 +419,13 @@ public partial class UgcService : Node, IUgcService
         {
             RequestFormat = DataFormat.Json
         }
-            .AddQueryParameter("offset", getContentVersionsArgs?.Offset ?? 0)
-            .AddQueryParameter("limit", getContentVersionsArgs?.Limit ?? 25)
-            .AddQueryParameter("includeTotal", getContentVersionsArgs?.IncludeTotal ?? false);
+            .AddQueryParameter("offset", getContentVersionsArgs.Offset)
+            .AddQueryParameter("limit", getContentVersionsArgs.Limit)
+            .AddQueryParameter("includeTotal", getContentVersionsArgs.IncludeTotal);
 
         if (getContentVersionsArgs?.SortBys != null)
         {
-            foreach (var sort in getContentVersionsArgs?.SortBys)
+            foreach (var sort in getContentVersionsArgs.SortBys)
                 request.AddQueryParameter("sortBys", sort);
         }
 
@@ -661,7 +661,7 @@ public partial class UgcService : Node, IUgcService
 
         if (searchContentModerationArgs?.SortBys != null)
         {
-            foreach (var sort in searchContentModerationArgs?.SortBys)
+            foreach (var sort in searchContentModerationArgs.SortBys)
                 request.AddQueryParameter("sortBys", sort);
         }
 
@@ -670,7 +670,7 @@ public partial class UgcService : Node, IUgcService
 
         if (searchContentModerationArgs?.Filters != null)
         {
-            foreach (var filter in searchContentModerationArgs?.Filters)
+            foreach (var filter in searchContentModerationArgs.Filters)
                 request.AddQueryParameter("filters", filter);
         }
 
@@ -762,7 +762,7 @@ public partial class UgcService : Node, IUgcService
 
         if (getSubscriptionsArgs?.SortBys != null)
         {
-            foreach (var sort in getSubscriptionsArgs?.SortBys)
+            foreach (var sort in getSubscriptionsArgs.SortBys)
                 request.AddQueryParameter("sortBys", sort);
         }
 
@@ -771,7 +771,7 @@ public partial class UgcService : Node, IUgcService
 
         if (getSubscriptionsArgs?.Filters != null)
         {
-            foreach (var filter in getSubscriptionsArgs?.Filters)
+            foreach (var filter in getSubscriptionsArgs.Filters)
                 request.AddQueryParameter("filters", filter);
         }
 
@@ -828,7 +828,7 @@ public partial class UgcService : Node, IUgcService
 
             var response = await downloadClient.ExecuteAsync(request);
             if (response.IsSuccessful)
-                content.DownloadedContent = response?.RawBytes ?? null;
+                content.DownloadedContent = response.RawBytes;
             else
                 throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
         }
@@ -839,7 +839,7 @@ public partial class UgcService : Node, IUgcService
 
             var response = await downloadClient.ExecuteAsync(request);
             if (response.IsSuccessful)
-                content.DownloadedThumbnail = response?.RawBytes ?? null;
+                content.DownloadedThumbnail = response.RawBytes;
             else
                 throw new UgcException(response.Content, response.ErrorMessage, response.ErrorException);
         }
@@ -994,22 +994,22 @@ public partial class UgcService : Node, IUgcService
         {
             RequestFormat = DataFormat.Json
         }
-            .AddQueryParameter("offset", getRepresentationsArgs?.Offset ?? 0)
-            .AddQueryParameter("limit", getRepresentationsArgs?.Limit ?? 25)
-            .AddQueryParameter("includeTotal", getRepresentationsArgs?.IncludeTotal ?? false);
+            .AddQueryParameter("offset", getRepresentationsArgs.Offset)
+            .AddQueryParameter("limit", getRepresentationsArgs.Limit)
+            .AddQueryParameter("includeTotal", getRepresentationsArgs.IncludeTotal);
 
         if (getRepresentationsArgs?.SortBys != null)
         {
-            foreach (var sort in getRepresentationsArgs?.SortBys)
+            foreach (var sort in getRepresentationsArgs.SortBys)
                 request.AddQueryParameter("sortBys", sort);
         }
 
-        if (!string.IsNullOrEmpty(getRepresentationsArgs?.Search))
+        if (!string.IsNullOrEmpty(getRepresentationsArgs.Search))
             request.AddQueryParameter("search", getRepresentationsArgs.Search);
 
         if (getRepresentationsArgs?.Filters != null)
         {
-            foreach (var filter in getRepresentationsArgs?.Filters)
+            foreach (var filter in getRepresentationsArgs.Filters)
                 request.AddQueryParameter("filters", filter);
         }
 
@@ -1051,7 +1051,7 @@ public partial class UgcService : Node, IUgcService
 
         if (searchRepresentationsArgs?.SortBys != null)
         {
-            foreach (var sort in searchRepresentationsArgs?.SortBys)
+            foreach (var sort in searchRepresentationsArgs.SortBys)
                 request.AddQueryParameter("sortBys", sort);
         }
 
@@ -1060,7 +1060,7 @@ public partial class UgcService : Node, IUgcService
 
         if (searchRepresentationsArgs?.Filters != null)
         {
-            foreach (var filter in searchRepresentationsArgs?.Filters)
+            foreach (var filter in searchRepresentationsArgs.Filters)
                 request.AddQueryParameter("filters", filter);
         }
 
@@ -1096,13 +1096,13 @@ public partial class UgcService : Node, IUgcService
         var request = new RestRequest(
             $"/v1/projects/{ProjectId}/environments/{EnvironmentId}/content/{getRepresentationVersionsArgs.ContentId}/representations/{getRepresentationVersionsArgs.RepresentationId}/versions"
         )
-            .AddQueryParameter("offset", getRepresentationVersionsArgs?.Offset ?? 0)
-            .AddQueryParameter("limit", getRepresentationVersionsArgs?.Limit ?? 25)
-            .AddQueryParameter("includeTotal", getRepresentationVersionsArgs?.IncludeTotal ?? false);
+            .AddQueryParameter("offset", getRepresentationVersionsArgs.Offset)
+            .AddQueryParameter("limit", getRepresentationVersionsArgs.Limit)
+            .AddQueryParameter("includeTotal", getRepresentationVersionsArgs.IncludeTotal);
 
         if (getRepresentationVersionsArgs?.SortBys != null)
         {
-            foreach (var sort in getRepresentationVersionsArgs?.SortBys)
+            foreach (var sort in getRepresentationVersionsArgs.SortBys)
                 request.AddQueryParameter("sortBys", sort);
         }
 

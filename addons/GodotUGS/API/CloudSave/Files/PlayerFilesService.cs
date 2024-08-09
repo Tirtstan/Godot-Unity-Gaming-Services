@@ -243,7 +243,7 @@ public class PlayerFilesService : IPlayerFilesService
 
         var response = await playerFilesClient.ExecuteAsync(request);
         if (response.IsSuccessful)
-            return response?.RawBytes ?? null;
+            return response?.RawBytes;
         else
             throw new CloudSaveException(response.Content, response.ErrorMessage, response.ErrorException);
     }
