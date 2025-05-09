@@ -602,7 +602,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.Apple,
                 Token = idToken,
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -615,7 +615,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.Apple,
                 Token = idToken,
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -645,9 +645,9 @@ public partial class AuthenticationService : Node, IAuthenticationService
                     TeamPlayerId = teamPlayerId,
                     PublicKeyURL = publicKeyURL,
                     Salt = salt,
-                    Timestamp = timestamp
+                    Timestamp = timestamp,
                 },
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -672,9 +672,9 @@ public partial class AuthenticationService : Node, IAuthenticationService
                     TeamPlayerId = teamPlayerId,
                     PublicKeyURL = publicKeyURL,
                     Salt = salt,
-                    Timestamp = timestamp
+                    Timestamp = timestamp,
                 },
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -692,7 +692,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.Google,
                 Token = idToken,
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -705,7 +705,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.Google,
                 Token = idToken,
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -723,7 +723,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.GooglePlayGames,
                 Token = authCode,
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -736,7 +736,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.GooglePlayGames,
                 Token = authCode,
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -754,7 +754,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.Facebook,
                 Token = token,
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -767,7 +767,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.Facebook,
                 Token = token,
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -788,7 +788,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
                 IdProvider = IdProviderKeys.Steam,
                 Token = sessionTicket,
                 SteamConfig = new SteamConfig { identity = identity },
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -804,7 +804,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
                 IdProvider = IdProviderKeys.Steam,
                 Token = sessionTicket,
                 SteamConfig = new SteamConfig { identity = identity },
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -825,7 +825,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
                 IdProvider = IdProviderKeys.Steam,
                 Token = sessionTicket,
                 SteamConfig = new SteamConfig { identity = identity, appId = appId },
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -846,7 +846,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
                 IdProvider = IdProviderKeys.Steam,
                 Token = sessionTicket,
                 SteamConfig = new SteamConfig { identity = identity, appId = appId },
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -865,7 +865,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
                 IdProvider = IdProviderKeys.Oculus,
                 Token = nonce,
                 OculusConfig = new OculusConfig { UserId = userId },
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -879,7 +879,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
                 IdProvider = IdProviderKeys.Oculus,
                 Token = nonce,
                 OculusConfig = new OculusConfig { UserId = userId },
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -897,7 +897,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.Unity,
                 Token = token,
-                SignInOnly = !options?.CreateAccount ?? false
+                SignInOnly = !options?.CreateAccount ?? false,
             }
         );
     }
@@ -910,7 +910,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             {
                 IdProvider = IdProviderKeys.Unity,
                 Token = token,
-                ForceLink = options?.ForceLink ?? false
+                ForceLink = options?.ForceLink ?? false,
             }
         );
     }
@@ -1008,7 +1008,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
         var request = new RestRequest($"/users/{PlayerId}", Method.Delete)
         {
             Authenticator = new JwtAuthenticator(AccessToken),
-            RequestFormat = DataFormat.Json
+            RequestFormat = DataFormat.Json,
         };
 
         var response = await authClient.ExecuteAsync(request);
@@ -1035,7 +1035,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
         var request = new RestRequest($"/users/{PlayerId}")
         {
             RequestFormat = DataFormat.Json,
-            Authenticator = new JwtAuthenticator(AccessToken)
+            Authenticator = new JwtAuthenticator(AccessToken),
         };
 
         var response = await authClient.ExecuteAsync<PlayerInfoResponse>(request);
@@ -1050,7 +1050,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
         var request = new RestRequest($"/users/{PlayerId}/notifications")
         {
             Authenticator = new JwtAuthenticator(AccessToken),
-            RequestFormat = DataFormat.Json
+            RequestFormat = DataFormat.Json,
         };
 
         var response = await authClient.ExecuteAsync<NotificationList>(request);
@@ -1169,7 +1169,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
     {
         var request = new RestRequest($"/authentication/link/{idProvider}", Method.Post)
         {
-            Authenticator = new JwtAuthenticator(AccessToken)
+            Authenticator = new JwtAuthenticator(AccessToken),
         }.AddJsonBody(tokenRequest);
 
         var response = await authClient.ExecuteAsync<LinkResponse>(request);
@@ -1185,7 +1185,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
     {
         var request = new RestRequest($"/authentication/unlink/{idProvider}", Method.Post)
         {
-            Authenticator = new JwtAuthenticator(AccessToken)
+            Authenticator = new JwtAuthenticator(AccessToken),
         }.AddJsonBody(new { externalId = PlayerInfo?.GetIdentityId(idProvider) });
 
         var response = await authClient.ExecuteAsync(request);
@@ -1230,7 +1230,7 @@ public partial class AuthenticationService : Node, IAuthenticationService
             SignInResponse = new SignInResponse
             {
                 IdToken = (string)config.GetValue(Profile, "idToken"),
-                SessionToken = (string)config.GetValue(Profile, "sessionToken")
+                SessionToken = (string)config.GetValue(Profile, "sessionToken"),
             };
         }
     }

@@ -1,19 +1,18 @@
-[gd_scene load_steps=9 format=3 uid="uid://ddplf011y54gu"]
+[gd_scene load_steps=8 format=3 uid="uid://ddplf011y54gu"]
 
-[ext_resource type="Script" path="res://addons/GodotUGS/API/Core/UnityServices.cs" id="1_4tj83"]
-[ext_resource type="Resource" uid="uid://bshex3xqk7d4y" path="res://DontShip/APIResource.tres" id="2_uy88d"]
-[ext_resource type="Script" path="res://addons/GodotUGS/API/Authentication/AuthenticationService.cs" id="3_g63vc"]
-[ext_resource type="Script" path="res://addons/GodotUGS/API/Leaderboards/LeaderboardsService.cs" id="4_gb060"]
-[ext_resource type="Script" path="res://addons/GodotUGS/API/CloudSave/CloudSaveService.cs" id="5_jkf6u"]
-[ext_resource type="Script" path="res://addons/GodotUGS/API/Economy/EconomyService.cs" id="6_q0ot7"]
-[ext_resource type="Script" path="res://addons/GodotUGS/API/Friends/FriendsService.cs" id="7_wj1ya"]
-[ext_resource type="Script" path="res://addons/GodotUGS/API/Ugc/UgcService.cs" id="8_wvh6g"]
+[ext_resource type="Script" uid="uid://ci3j1xx7xs7od" path="res://addons/GodotUGS/API/Core/UnityServices.cs" id="1_4tj83"]
+[ext_resource type="Resource" uid="uid://8xbvl7s8xjak" path="res://addons/GodotUGS/Resources/APIResource_Example.tres" id="2_slw3y"]
+[ext_resource type="Script" uid="uid://cghuhfopfjhu7" path="res://addons/GodotUGS/API/Authentication/AuthenticationService.cs" id="3_g63vc"]
+[ext_resource type="Script" uid="uid://hl1bdwdlfqll" path="res://addons/GodotUGS/API/Leaderboards/LeaderboardsService.cs" id="4_gb060"]
+[ext_resource type="Script" uid="uid://fdrpgnyy8glx" path="res://addons/GodotUGS/API/CloudSave/CloudSaveService.cs" id="5_jkf6u"]
+[ext_resource type="Script" uid="uid://dqdfug6fsccmn" path="res://addons/GodotUGS/API/Economy/EconomyService.cs" id="6_q0ot7"]
+[ext_resource type="Script" uid="uid://bsmha7j5gh3q4" path="res://addons/GodotUGS/API/Friends/FriendsService.cs" id="7_wj1ya"]
 
 [node name="Unity" type="Node"]
 
 [node name="UnityServices" type="Node" parent="."]
 script = ExtResource("1_4tj83")
-apiResource = ExtResource("2_uy88d")
+apiResource = ExtResource("2_slw3y")
 
 [node name="AuthenticationService" type="Node" parent="."]
 script = ExtResource("3_g63vc")
@@ -30,6 +29,3 @@ script = ExtResource("6_q0ot7")
 
 [node name="Friends" type="Node" parent="."]
 script = ExtResource("7_wj1ya")
-
-[node name="UgcService" type="Node" parent="."]
-script = ExtResource("8_wvh6g")
