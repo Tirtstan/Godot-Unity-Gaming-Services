@@ -1,6 +1,6 @@
 # Godot Unity Gaming Services
 
-Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot 4+ (C# Mono)** (All latest stables & 4.3 beta 3).
+Basic SKD for connecting **[Unity Gaming Services (UGS)](https://unity.com/solutions/gaming-services)** to **Godot 4+ (C# Mono)**.
 
 Feel free to use this as a jumping point to create a bigger, final version or contribute directly.
 
@@ -60,8 +60,10 @@ Done!
     -   Apple, Apple Game Center, Google, Google Play, Facebook, Steam, Oculus & Unity
 -   Leaderboards
 -   Cloud Save
--   User Generated Content
 -   Friends (Not properly tested)
+
+> [!NOTE]  
+> **User Generated Content has been discontinued since <u>12 March 2025</u>, full deprecation will occur by <u>11 May 2025</u>. It has since been removed.**
 
 ### Planned
 
@@ -90,11 +92,6 @@ Done!
 
     -   [Saving Items](#saving-items)
     -   [Loading Items](#loading-items)
-
--   **[User Generated Content](#user-generated-content)**
-
-    -   [Uploading Content](#uploading-content)
-    -   [Getting Specific Content](#getting-specific-content)
 
 ### Initialization
 
@@ -310,72 +307,6 @@ private async void LoadItem()
         }
     }
     catch (CloudSaveException e)
-    {
-        GD.PrintErr(e);
-    }
-}
-```
-
-### User Generated Content
-
-#### Uploading Content
-
-> [!NOTE]  
-> `FileAccess.GetFileAsBytes` is a `Godot` method, use `res://` or `user://` type paths.  
-> Alternatively, you can use `System.IO.File.ReadAllBytes` and provide an absolute path optionally with `Path.Combine`.
-
-```cs
-using Godot;
-using Unity.Services.Ugc;
-
-private async void CreateContentAsync(string name, string description, string contentPath)
-{
-    try
-    {
-        byte[] contentBytes = FileAccess.GetFileAsBytes(contentPath);
-
-        var content = await UgcService.Instance.CreateContentAsync(
-            new CreateContentArgs(name, description, contentBytes)
-        );
-
-        GD.Print("Content ID: " + content.Id + " was uploaded!");
-    }
-    catch (UgcException e)
-    {
-        GD.PrintErr(e);
-    }
-}
-```
-
-#### Getting Specific Content
-
-```cs
-using Godot;
-using Unity.Services.Ugc;
-
-private async void GetContentAsync(string contentId)
-{
-    try
-    {
-        var content = await UgcService.Instance.GetContentAsync(
-            new GetContentArgs(contentId) { DownloadContent = true, DownloadThumbnail = true }
-        );
-
-        using (var file = FileAccess.Open("res://contentDownloaded.json", FileAccess.ModeFlags.Write))
-        {
-            file.StoreBuffer(content.DownloadedContent);
-        }
-
-        using (var thumb = FileAccess.Open("res://thumbnailDownloaded.jpg", FileAccess.ModeFlags.Write))
-        {
-            thumb.StoreBuffer(content.DownloadedThumbnail);
-        }
-
-        GD.Print("Content ID: " + content.Id);
-        GD.Print("Content Name: " + content.Name);
-        GD.Print("Content Description: " + content.Description);
-    }
-    catch (UgcException e)
     {
         GD.PrintErr(e);
     }
